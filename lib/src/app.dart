@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:yeah_passwords/src/pages/yeah_password_login.dart';
+import 'package:yeah_passwords/src/pages/login_page.dart';
 
-class YeahPasswordApp extends StatelessWidget {
+class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Yeah! Passwords',
       theme: ThemeData(primarySwatch: Colors.green),
-      home: YeahPasswordLoginPage(
+      home: LoginPage(
         title: 'Yeah! Password - Login',
       ),
     );

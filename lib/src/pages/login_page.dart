@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:yeah_passwords/src/pages/yeah_password_home.dart';
+import 'package:yeah_passwords/src/pages/home_page.dart';
 
-class YeahPasswordLoginPage extends StatefulWidget {
-  YeahPasswordLoginPage({Key key, this.title}) : super(key: key);
+class LoginPage extends StatefulWidget {
+  LoginPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _YeahPasswordLoginPageState createState() => _YeahPasswordLoginPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _YeahPasswordLoginPageState extends State<YeahPasswordLoginPage> {
+class _LoginPageState extends State<LoginPage> {
   TextEditingController userNameController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
@@ -20,7 +20,7 @@ class _YeahPasswordLoginPageState extends State<YeahPasswordLoginPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => YeahPasswordHomePage(
+            builder: (context) => HomePage(
                   title: 'Yeah! Passwords - Home',
                 )),
       );
