@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:yeah_passwords/src/models/user_model.dart';
 import 'package:yeah_passwords/src/pages/home_page.dart';
+import 'package:yeah_passwords/src/repositories/user_repository.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title}) : super(key: key);
@@ -14,7 +16,12 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController userNameController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
-  void _login(BuildContext context) {
+  void _login(BuildContext context) async {
+    // var user = User(name: 'test', passwordHash: 'sldjfdhfhudf');
+    // await UserRepository().insert(user);
+    // List<User> users = await UserRepository().findAll();
+    // print(users);
+
     if (userNameController.text == "lorem" &&
         passwordController.text == "ipsum") {
       Navigator.push(
@@ -68,9 +75,14 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         SizedBox(height: 25.0),
-                        OutlineButton(
-                          child: new Text("Sign In"),
-                          onPressed: () => _login(context),
+                        ButtonTheme(
+                          height: 48,
+                          minWidth: double.infinity,
+                          child: RaisedButton(
+                            child: Text('Sign In'),
+                            textColor: Colors.white,
+                            onPressed: () => _login(context),
+                          ),
                         ),
                       ])))),
     );
