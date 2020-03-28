@@ -1,38 +1,51 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:yeah_passwords/src/models/user_model.dart';
+import 'package:yeah_passwords/src/repositories/user_repository.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
-class LoginPage extends StatefulWidget {
-  LoginPage({Key key, this.title}) : super(key: key);
+class SigninPage extends StatefulWidget {
+  SigninPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _SigninPageState createState() => _SigninPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SigninPageState extends State<SigninPage> {
   YeahInput usernameInput = YeahInput(labelText: "Username", isPassword: false);
   YeahInput passwordInput = YeahInput(labelText: "Password", isPassword: true);
 
-  void _performLogin(BuildContext context) async {
-    // var user = User(name: 'test', passwordHash: 'sldjfdhfhudf');
-    // await UserRepository().insert(user);
-    // List<User> users = await UserRepository().findAll();
-    // print(users);
+  void _buildDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(message),
+        );
+      },
+    );
+  }
 
-    if (usernameInput.getText() == "lorem" &&
-        passwordInput.getText() == "ipsum") {
-      Navigator.pushNamed(context, "/home");
-    } else {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text("Wrong credentials."),
-          );
-        },
-      );
+  void _performLogin(BuildContext context) async {
+    User foundUser = await UserRepository().findByName(usernameInput.getText());
+    if (foundUser == null) {
+      _buildDialog(context, "User not found.");
+      return;
     }
+
+    List<int> bytes = utf8.encode(passwordInput.getText());
+    Digest enteredPasswordHash = sha256.convert(bytes);
+
+    if (enteredPasswordHash.toString() != foundUser.passwordHash) {
+      _buildDialog(context, "Password is not matching.");
+      return;
+    }
+
+    Navigator.pushNamed(context, "/home");
   }
 
   void _performNavigation(BuildContext context) {
@@ -79,11 +92,11 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         usernameInput,
-                        SizedBox(height: 25.0),
+                        SizedBox(height: 24.0),
                         passwordInput,
-                        SizedBox(height: 25.0),
+                        SizedBox(height: 24.0),
                         _buildSignInButtonTheme(context, "Sign In"),
-                        SizedBox(height: 25.0),
+                        SizedBox(height: 12.0),
                         _buildSignUpButtonTheme(context, "Sign Up"),
                       ])))),
     );

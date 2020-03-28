@@ -25,6 +25,18 @@ class UserRepository {
     return null;
   }
 
+  Future<User> findByName(String name) async {
+    final Database db = await DatabaseHelper.instance.database;
+    List<Map> maps =
+        await db.query("User", where: 'name = ?', whereArgs: [name]);
+
+    if (maps.length > 0) {
+      return User.fromMap(maps.first);
+    }
+
+    return null;
+  }
+
   Future<void> insert(User user) async {
     final Database db = await DatabaseHelper.instance.database;
     await db.insert("User", user.toMap(),
