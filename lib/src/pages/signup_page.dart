@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:yeah_passwords/src/models/user_model.dart';
+import 'package:yeah_passwords/src/repositories/user_repository.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class SignupPage extends StatefulWidget {
@@ -16,24 +21,42 @@ class _SignupPageState extends State<SignupPage> {
   YeahInput confirmPasswordInput =
       YeahInput(labelText: "Confirm Password", isPassword: true);
 
-  void _performSignUp(BuildContext context) async {
-    // var user = User(name: 'test', passwordHash: 'sldjfdhfhudf');
-    // await UserRepository().insert(user);
-    // List<User> users = await UserRepository().findAll();
-    // print(users);
+  void _buildDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(message),
+        );
+      },
+    );
+  }
 
-    if (passwordInput.getText() == confirmPasswordInput.getText()) {
-      Navigator.pushNamed(context, "/home");
-    } else {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text("Passwords not matching."),
-          );
-        },
-      );
+  Future _createNewUser() async {
+    List<int> bytes = utf8.encode(passwordInput.getText());
+    Digest passwordHash = sha256.convert(bytes);
+
+    User newUser = User(
+        name: usernameInput.getText(), passwordHash: passwordHash.toString());
+
+    await UserRepository().insert(newUser);
+  }
+
+  void _performSignUp(BuildContext context) async {
+    if (passwordInput.getText() != confirmPasswordInput.getText()) {
+      _buildDialog(context, "Passwords not matching.");
+      return;
     }
+
+    User foundUser = await UserRepository().findByName(usernameInput.getText());
+    if (foundUser != null) {
+      _buildDialog(context, "User already registerd.");
+      return;
+    }
+
+    await _createNewUser();
+
+    Navigator.pushNamed(context, "/home");
   }
 
   ButtonTheme _buildSignUpButtonTheme(BuildContext context, String buttonText) {
@@ -69,7 +92,7 @@ class _SignupPageState extends State<SignupPage> {
                         passwordInput,
                         SizedBox(height: 24.0),
                         confirmPasswordInput,
-                        SizedBox(height: 6.0),
+                        SizedBox(height: 24.0),
                         _buildSignUpButtonTheme(context, "Sign Up"),
                       ])))),
     );
