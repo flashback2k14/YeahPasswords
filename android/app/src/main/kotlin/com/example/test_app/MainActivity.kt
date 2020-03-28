@@ -1,4 +1,4 @@
-package com.example.test_app
+package com.yeahdev.yeah_passwords
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
