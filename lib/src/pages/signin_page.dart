@@ -45,6 +45,9 @@ class _SigninPageState extends State<SigninPage> {
       return;
     }
 
+    usernameInput.clear();
+    passwordInput.clear();
+
     Navigator.pushNamed(context, "/home");
   }
 
@@ -81,6 +84,7 @@ class _SigninPageState extends State<SigninPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        automaticallyImplyLeading: false,
       ),
       body: Center(
           child: Container(

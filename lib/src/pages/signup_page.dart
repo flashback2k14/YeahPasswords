@@ -56,6 +56,10 @@ class _SignupPageState extends State<SignupPage> {
 
     await _createNewUser();
 
+    usernameInput.clear();
+    passwordInput.clear();
+    confirmPasswordInput.clear();
+
     Navigator.pushNamed(context, "/home");
   }
 

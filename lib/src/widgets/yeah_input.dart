@@ -11,6 +11,10 @@ class YeahInput extends StatelessWidget {
     return controller.text.trim();
   }
 
+  void clear() {
+    controller.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return TextField(
