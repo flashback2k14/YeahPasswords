@@ -16,24 +16,30 @@ class SigninPage extends StatefulWidget {
 }
 
 class _SigninPageState extends State<SigninPage> {
-  YeahInput usernameInput = YeahInput(labelText: "Username", isPassword: false);
-  YeahInput passwordInput = YeahInput(labelText: "Password", isPassword: true);
+  YeahInput usernameInput = YeahInput(
+    labelText: "Username",
+    isPassword: false,
+    isLastInput: false,
+  );
+  YeahInput passwordInput = YeahInput(
+    labelText: "Password",
+    isPassword: true,
+    isLastInput: true,
+  );
 
-  void _buildDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text(message),
-        );
-      },
-    );
+  void _showSnackbar(BuildContext context, String message) {
+    Scaffold.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _performLogin(BuildContext context) async {
+    if (usernameInput.getText().isEmpty || passwordInput.getText().isEmpty) {
+      _showSnackbar(context, "Empty inputs not allowed.");
+      return;
+    }
+
     User foundUser = await UserRepository().findByName(usernameInput.getText());
     if (foundUser == null) {
-      _buildDialog(context, "User not found.");
+      _showSnackbar(context, "User not found.");
       return;
     }
 
@@ -41,7 +47,7 @@ class _SigninPageState extends State<SigninPage> {
     Digest enteredPasswordHash = sha256.convert(bytes);
 
     if (enteredPasswordHash.toString() != foundUser.passwordHash) {
-      _buildDialog(context, "Password is not matching.");
+      _showSnackbar(context, "Password is not matching.");
       return;
     }
 
@@ -61,7 +67,6 @@ class _SigninPageState extends State<SigninPage> {
       minWidth: double.infinity,
       child: RaisedButton(
         child: Text(buttonText),
-        textColor: Colors.white,
         onPressed: () => _performLogin(context),
       ),
     );
@@ -73,7 +78,6 @@ class _SigninPageState extends State<SigninPage> {
       minWidth: double.infinity,
       child: FlatButton(
         child: Text(buttonText),
-        textColor: Colors.green,
         onPressed: () => _performNavigation(context),
       ),
     );
@@ -82,27 +86,27 @@ class _SigninPageState extends State<SigninPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-          child: Container(
-              color: Colors.white,
-              child: Padding(
-                  padding: const EdgeInsets.all(36.0),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        usernameInput,
-                        SizedBox(height: 24.0),
-                        passwordInput,
-                        SizedBox(height: 24.0),
-                        _buildSignInButtonTheme(context, "Sign In"),
-                        SizedBox(height: 12.0),
-                        _buildSignUpButtonTheme(context, "Sign Up"),
-                      ])))),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+          automaticallyImplyLeading: false,
+        ),
+        body: Builder(builder: (BuildContext context) {
+          return Center(
+              child: Container(
+                  child: Padding(
+                      padding: const EdgeInsets.all(36.0),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            usernameInput,
+                            SizedBox(height: 24.0),
+                            passwordInput,
+                            SizedBox(height: 24.0),
+                            _buildSignInButtonTheme(context, "Sign In"),
+                            SizedBox(height: 12.0),
+                            _buildSignUpButtonTheme(context, "Sign Up"),
+                          ]))));
+        }));
   }
 }
