@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:nfc_in_flutter/nfc_in_flutter.dart';
+import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
@@ -13,22 +15,34 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final TextEditingController _textEditingController =
+      new TextEditingController();
   StreamSubscription<NDEFMessage> _stream;
+
+  List<String> items = [];
+
+  void _showSnackbar(String message) {
+    final snackBar = SnackBar(content: Text(message));
+    _scaffoldKey.currentState.showSnackBar(snackBar);
+  }
 
   void _startScanning() {
     setState(() {
+      items.clear();
+
       _stream = NFC
           .readNDEF(alertMessage: "Custom message")
           .listen((NDEFMessage message) {
         if (message.isEmpty) {
-          print("read empty ndef message");
+          _showSnackbar("read empty ndef message");
           return;
         }
-        print("ndef message ${message.records.length} records.");
+        _showSnackbar("ndef message ${message.records.length} records.");
 
         for (NDEFRecord record in message.records) {
-          print(
-              "Record '${record.id ?? "[NO ID]"}' with TNF '${record.tnf}', type '${record.type}', payload '${record.payload}' and data '${record.data}' and language code '${record.languageCode}'");
+          items.add(record.data);
+          setState(() {});
         }
       });
     });
@@ -43,12 +57,73 @@ class _HomePageState extends State<HomePage> {
 
   void _toggleScan() {
     if (_stream == null) {
-      print("start...");
+      _showSnackbar("start...");
       _startScanning();
     } else {
-      print("stop...");
+      _showSnackbar("stop...");
       _stopScanning();
     }
+  }
+
+  void _write(BuildContext context) async {
+    List<NDEFRecord> records = items.map((record) {
+      return NDEFRecord.plain(record);
+    }).toList();
+    NDEFMessage message = NDEFMessage.withRecords(records);
+
+    // Show dialog on Android (iOS has it's own one)
+    if (Platform.isAndroid) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Scan the tag you want to write to"),
+          actions: <Widget>[
+            FlatButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                _stream?.cancel();
+                return;
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Write to the first tag scanned
+    await NFC.writeNDEF(message).first;
+    _showSnackbar("successfully saved");
+  }
+
+  void _onAddItemPressed() {
+    _scaffoldKey.currentState.showBottomSheet<Null>((BuildContext context) {
+      return new Container(
+        decoration: new BoxDecoration(color: Colors.blueGrey),
+        child: new Padding(
+          padding: const EdgeInsets.fromLTRB(32.0, 50.0, 32.0, 32.0),
+          child: new TextField(
+            controller: _textEditingController,
+            decoration: InputDecoration(
+              hintText: 'Please enter a task',
+            ),
+            onSubmitted: _onSubmit,
+          ),
+        ),
+      );
+    });
+  }
+
+  _onSubmit(String s) {
+    if (s.isNotEmpty) {
+      items.add(s);
+      _textEditingController.clear();
+      setState(() {});
+    }
+  }
+
+  _onDeleteItemPressed(item) {
+    items.removeAt(item);
+    setState(() {});
   }
 
   @override
@@ -60,83 +135,74 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-          automaticallyImplyLeading: false,
-          actions: <Widget>[
-            Padding(
-                padding: EdgeInsets.only(right: 20.0),
-                child: GestureDetector(
-                  onTap: () {
-                    _readNfc(context);
-                  },
-                  child: Icon(
-                    Icons.sync,
-                    size: 26.0,
-                  ),
-                )),
-            Padding(
-                padding: EdgeInsets.only(right: 20.0),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.popAndPushNamed(context, "/signin");
-                  },
-                  child: Icon(
-                    Icons.eject,
-                    size: 26.0,
-                  ),
-                )),
-          ],
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text(widget.title),
+        automaticallyImplyLeading: false,
+        actions: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(right: 12.0),
+              child: GestureDetector(
+                onTap: () {
+                  _toggleScan();
+                },
+                child: Icon(
+                  Icons.file_download,
+                  size: 26.0,
+                ),
+              )),
+          Padding(
+              padding: EdgeInsets.only(right: 12.0),
+              child: GestureDetector(
+                onTap: () {
+                  _write(context);
+                },
+                child: Icon(
+                  Icons.file_upload,
+                  size: 26.0,
+                ),
+              )),
+          Padding(
+              padding: EdgeInsets.only(right: 12.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.popAndPushNamed(context, "/signin");
+                },
+                child: Icon(
+                  Icons.eject,
+                  size: 26.0,
+                ),
+              )),
+        ],
+      ),
+      body: new Container(
+        child: new ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(
+                '${items[index]}',
+              ),
+              trailing: new IconButton(
+                icon: new Icon(Icons.delete),
+                onPressed: () {
+                  _onDeleteItemPressed(index);
+                },
+              ),
+            );
+          },
         ),
-        body: Builder(builder: (BuildContext context) {
-          return Center(
-              child: Container(
-                  child: Padding(
-                      padding: const EdgeInsets.all(36.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text('TODO: add list and inputs'),
-                            SizedBox(height: 24.0),
-                            ButtonTheme(
-                              height: 48,
-                              minWidth: double.infinity,
-                              child: FlatButton(
-                                  child: Text("Read NFC"),
-                                  onPressed: _toggleScan),
-                            ),
-                            SizedBox(height: 24.0),
-                            ButtonTheme(
-                              height: 48,
-                              minWidth: double.infinity,
-                              child: FlatButton(
-                                child: Text("Write NFC"),
-                                onPressed: () => _writeNfc(context),
-                              ),
-                            )
-                          ]))));
-        }));
-  }
-
-  void _showSnackbar(BuildContext context, String message) {
-    final snackBar = SnackBar(content: Text(message));
-    Scaffold.of(context).showSnackBar(snackBar);
-  }
-
-  void _readNfc(BuildContext context) async {
-    NDEFMessage message = await NFC.readNDEF(once: true).first;
-    _showSnackbar(context, message.payload);
-    // print("payload: " + message.payload);
-  }
-
-  void _writeNfc(BuildContext context) {
-    NDEFMessage newMessage =
-        NDEFMessage.withRecords([NDEFRecord.plain("hello world")]);
-    Stream<NDEFTag> stream = NFC.writeNDEF(newMessage, once: true);
-
-    stream.listen((NDEFTag tag) {
-      print("only wrote to one tag!");
-    });
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: () {
+          _onAddItemPressed();
+        },
+        tooltip: 'Add task',
+        child: new Icon(Icons.add),
+      ),
+    );
   }
 }
+
+// https://github.com/guivazcabral/flutter_todo/blob/master/lib/main.dart
+// https://github.com/semlette/nfc_in_flutter/blob/master/example/lib/write_example_screen.dart
