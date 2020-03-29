@@ -16,20 +16,25 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  YeahInput usernameInput = YeahInput(labelText: "Username", isPassword: false);
-  YeahInput passwordInput = YeahInput(labelText: "Password", isPassword: true);
-  YeahInput confirmPasswordInput =
-      YeahInput(labelText: "Confirm Password", isPassword: true);
+  YeahInput usernameInput = YeahInput(
+    labelText: "Username",
+    isPassword: false,
+    isLastInput: false,
+  );
+  YeahInput passwordInput = YeahInput(
+    labelText: "Password",
+    isPassword: true,
+    isLastInput: false,
+  );
+  YeahInput confirmPasswordInput = YeahInput(
+    labelText: "Confirm Password",
+    isPassword: true,
+    isLastInput: true,
+  );
 
-  void _buildDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text(message),
-        );
-      },
-    );
+  void _showSnackbar(BuildContext context, String message) {
+    final snackBar = SnackBar(content: Text(message));
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 
   Future _createNewUser() async {
@@ -43,14 +48,21 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _performSignUp(BuildContext context) async {
+    if (usernameInput.getText().isEmpty ||
+        passwordInput.getText().isEmpty ||
+        confirmPasswordInput.getText().isEmpty) {
+      _showSnackbar(context, "Empty inputs not allowed.");
+      return;
+    }
+
     if (passwordInput.getText() != confirmPasswordInput.getText()) {
-      _buildDialog(context, "Passwords not matching.");
+      _showSnackbar(context, "Passwords not matching.");
       return;
     }
 
     User foundUser = await UserRepository().findByName(usernameInput.getText());
     if (foundUser != null) {
-      _buildDialog(context, "User already registerd.");
+      _showSnackbar(context, "User already registerd.");
       return;
     }
 
@@ -69,7 +81,6 @@ class _SignupPageState extends State<SignupPage> {
       minWidth: double.infinity,
       child: RaisedButton(
         child: Text(buttonText),
-        textColor: Colors.white,
         onPressed: () => _performSignUp(context),
       ),
     );
@@ -78,27 +89,27 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-          child: Container(
-              color: Colors.white,
-              child: Padding(
-                  padding: const EdgeInsets.all(36.0),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        usernameInput,
-                        SizedBox(height: 24.0),
-                        passwordInput,
-                        SizedBox(height: 24.0),
-                        confirmPasswordInput,
-                        SizedBox(height: 24.0),
-                        _buildSignUpButtonTheme(context, "Sign Up"),
-                      ])))),
-    );
+        appBar: AppBar(
+          title: Text(widget.title),
+          automaticallyImplyLeading: false,
+        ),
+        body: Builder(builder: (BuildContext context) {
+          return Center(
+              child: Container(
+                  child: Padding(
+                      padding: const EdgeInsets.all(36.0),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            usernameInput,
+                            SizedBox(height: 24.0),
+                            passwordInput,
+                            SizedBox(height: 24.0),
+                            confirmPasswordInput,
+                            SizedBox(height: 24.0),
+                            _buildSignUpButtonTheme(context, "Sign Up"),
+                          ]))));
+        }));
   }
 }

@@ -8,7 +8,13 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Yeah! Passwords',
-      theme: ThemeData(primarySwatch: Colors.green),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.orange,
+      ),
+      darkTheme:
+          ThemeData(brightness: Brightness.dark, primarySwatch: Colors.orange),
       initialRoute: "/signin",
       routes: <String, WidgetBuilder>{
         "/signin": (context) => SigninPage(
