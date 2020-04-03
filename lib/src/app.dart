@@ -11,10 +11,10 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.lightGreen,
       ),
-      darkTheme:
-          ThemeData(brightness: Brightness.dark, primarySwatch: Colors.orange),
+      darkTheme: ThemeData(
+          brightness: Brightness.dark, primarySwatch: Colors.lightGreen),
       initialRoute: "/signin",
       routes: <String, WidgetBuilder>{
         "/signin": (context) => SigninPage(

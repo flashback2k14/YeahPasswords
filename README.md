@@ -14,3 +14,11 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## start adb over wifi
+
+```bash
+cd /Users/flbk/Library/Android/sdk/platform-tools
+./adb tcpip 5555
+./adb connect 192.168.1.6
+```
