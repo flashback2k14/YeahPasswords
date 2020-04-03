@@ -55,7 +55,7 @@ class _SigninPageState extends State<SigninPage> {
     usernameInput.clear();
     passwordInput.clear();
 
-    Navigator.pushNamed(context, "/home");
+    Navigator.pushReplacementNamed(context, "/home");
   }
 
   void _performNavigation(BuildContext context) {
