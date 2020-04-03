@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-class YeahInput extends StatelessWidget {
-  YeahInput({Key key, this.labelText, this.isPassword, this.isLastInput})
-      : super(key: key);
+class YeahInput extends StatefulWidget {
+  YeahInput({this.key, this.labelText, this.isPassword, this.isLastInput});
 
-  final TextEditingController controller = new TextEditingController();
+  final Key key;
   final String labelText;
   final bool isPassword;
   final bool isLastInput;
+
+  final TextEditingController controller = new TextEditingController();
 
   String getText() {
     return controller.text.trim();
@@ -18,17 +19,42 @@ class YeahInput extends StatelessWidget {
   }
 
   @override
+  _YeahInputState createState() => new _YeahInputState();
+}
+
+class _YeahInputState extends State<YeahInput> {
+  bool _showPassword;
+
+  @override
+  void initState() {
+    super.initState();
+    _showPassword = widget.isPassword;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
-        controller: controller,
-        obscureText: isPassword,
+        controller: widget.controller,
+        obscureText: _showPassword,
+        keyboardType: TextInputType.text,
         decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: labelText,
-        ),
+            labelText: widget.labelText,
+            border: OutlineInputBorder(),
+            suffixIcon: widget.isPassword
+                ? IconButton(
+                    icon: Icon(_showPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  )
+                : null),
         textInputAction:
-            isLastInput ? TextInputAction.done : TextInputAction.next,
-        onSubmitted: (_) => isLastInput
+            widget.isLastInput ? TextInputAction.done : TextInputAction.next,
+        onSubmitted: (_) => widget.isLastInput
             ? FocusScope.of(context).unfocus()
             : FocusScope.of(context).nextFocus());
   }

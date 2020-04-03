@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:yeah_passwords/src/models/user_model.dart';
 import 'package:yeah_passwords/src/repositories/user_repository.dart';
+import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class SigninPage extends StatefulWidget {
@@ -61,30 +62,18 @@ class _SigninPageState extends State<SigninPage> {
     Navigator.pushNamed(context, "/signup");
   }
 
-  ButtonTheme _buildSignInButtonTheme(BuildContext context, String buttonText) {
-    return ButtonTheme(
-      height: 48,
-      minWidth: double.infinity,
-      child: RaisedButton(
-        child: Text(buttonText),
-        onPressed: () => _performLogin(context),
-      ),
-    );
-  }
-
-  ButtonTheme _buildSignUpButtonTheme(BuildContext context, String buttonText) {
-    return ButtonTheme(
-      height: 48,
-      minWidth: double.infinity,
-      child: FlatButton(
-        child: Text(buttonText),
-        onPressed: () => _performNavigation(context),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    YeahButton signInButton = YeahButton(
+        buttonText: "Sign In",
+        isSecondary: false,
+        onPressed: () => _performLogin(context));
+
+    YeahButton signUpButton = YeahButton(
+        buttonText: "Sign Up",
+        isSecondary: true,
+        onPressed: () => _performNavigation(context));
+
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
@@ -103,9 +92,9 @@ class _SigninPageState extends State<SigninPage> {
                             SizedBox(height: 24.0),
                             passwordInput,
                             SizedBox(height: 24.0),
-                            _buildSignInButtonTheme(context, "Sign In"),
+                            signInButton,
                             SizedBox(height: 12.0),
-                            _buildSignUpButtonTheme(context, "Sign Up"),
+                            signUpButton,
                           ]))));
         }));
   }

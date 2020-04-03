@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:yeah_passwords/src/models/user_model.dart';
 import 'package:yeah_passwords/src/repositories/user_repository.dart';
+import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class SignupPage extends StatefulWidget {
@@ -75,19 +76,13 @@ class _SignupPageState extends State<SignupPage> {
     Navigator.pushNamed(context, "/home");
   }
 
-  ButtonTheme _buildSignUpButtonTheme(BuildContext context, String buttonText) {
-    return ButtonTheme(
-      height: 48,
-      minWidth: double.infinity,
-      child: RaisedButton(
-        child: Text(buttonText),
-        onPressed: () => _performSignUp(context),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    YeahButton signUpButton = YeahButton(
+        buttonText: "Sign up",
+        isSecondary: false,
+        onPressed: () => _performSignUp(context));
+
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
@@ -108,7 +103,7 @@ class _SignupPageState extends State<SignupPage> {
                             SizedBox(height: 24.0),
                             confirmPasswordInput,
                             SizedBox(height: 24.0),
-                            _buildSignUpButtonTheme(context, "Sign Up"),
+                            signUpButton
                           ]))));
         }));
   }

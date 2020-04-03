@@ -66,6 +66,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _write(BuildContext context) async {
+    _stopScanning();
+
     List<NDEFRecord> records = items.map((record) {
       return NDEFRecord.plain(record);
     }).toList();
@@ -81,7 +83,6 @@ class _HomePageState extends State<HomePage> {
             FlatButton(
               child: const Text("Cancel"),
               onPressed: () {
-                _stream?.cancel();
                 return;
               },
             ),
@@ -176,22 +177,24 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: new Container(
-        child: new ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(
-                '${items[index]}',
-              ),
-              trailing: new IconButton(
-                icon: new Icon(Icons.delete),
-                onPressed: () {
-                  _onDeleteItemPressed(index);
+        child: items.length == 0
+            ? Center(child: Text("Please scan your Cards."))
+            : new ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(
+                      '${items[index]}',
+                    ),
+                    trailing: new IconButton(
+                      icon: new Icon(Icons.delete),
+                      onPressed: () {
+                        _onDeleteItemPressed(index);
+                      },
+                    ),
+                  );
                 },
               ),
-            );
-          },
-        ),
       ),
       floatingActionButton: new FloatingActionButton(
         onPressed: () {
@@ -203,6 +206,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-// https://github.com/guivazcabral/flutter_todo/blob/master/lib/main.dart
-// https://github.com/semlette/nfc_in_flutter/blob/master/example/lib/write_example_screen.dart
