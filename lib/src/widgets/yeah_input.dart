@@ -1,3 +1,4 @@
+import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 
 class YeahInput extends StatefulWidget {
@@ -43,8 +44,8 @@ class _YeahInputState extends State<YeahInput> {
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(_showPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                        ? CommunityMaterialIcons.eye_outline
+                        : CommunityMaterialIcons.eye_off_outline),
                     onPressed: () {
                       setState(() {
                         _showPassword = !_showPassword;

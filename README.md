@@ -17,8 +17,17 @@ samples, guidance on mobile development, and a full API reference.
 
 ## start adb over wifi
 
+- https://developer.android.com/studio/command-line/adb
+
 ```bash
 cd /Users/flbk/Library/Android/sdk/platform-tools
 ./adb tcpip 5555
 ./adb connect 192.168.1.6
+```
+
+## stop adb over wifi
+
+```bash
+cd /Users/flbk/Library/Android/sdk/platform-tools
+./adb kill-server
 ```

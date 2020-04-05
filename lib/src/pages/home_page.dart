@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:community_material_icon/community_material_icon.dart';
+import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:nfc_in_flutter/nfc_in_flutter.dart';
+import 'package:yeah_passwords/src/pages/signin_page.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
@@ -10,6 +13,7 @@ class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
 
   final String title;
+  static final String navigationRoute = "/home";
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -26,13 +30,13 @@ class _HomePageState extends State<HomePage> {
 
   final YeahInput providerName = YeahInput(
       labelText: "Provider name", isPassword: false, isLastInput: false);
+
   final YeahInput providerPassword = YeahInput(
       labelText: "Provider password", isPassword: true, isLastInput: true);
 
-  void _showSnackbar(String message) {
-    final snackBar = SnackBar(content: Text(message));
-    _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
+  /*
+   * READ FROM NFC
+   */
 
   void _startScanning() {
     setState(() {
@@ -42,15 +46,22 @@ class _HomePageState extends State<HomePage> {
           .readNDEF(alertMessage: "Custom message")
           .listen((NDEFMessage message) {
         if (message.isEmpty) {
-          _showSnackbar("The card is empty.");
+          FlushbarHelper.createInformation(
+            message: 'The card is empty.',
+          ).show(context);
           return;
         }
-        _showSnackbar("${message.records.length} records read.");
 
         for (NDEFRecord record in message.records) {
           _items.add(record.data);
           setState(() {});
         }
+
+        _stopScanning();
+
+        FlushbarHelper.createSuccess(
+                message: "${message.records.length} records read.")
+            .show(context);
       });
     });
   }
@@ -64,13 +75,21 @@ class _HomePageState extends State<HomePage> {
 
   void _toggleScan() {
     if (_stream == null) {
-      _showSnackbar("start reading...");
+      FlushbarHelper.createInformation(
+        message: 'Start reading data...',
+      ).show(context);
       _startScanning();
     } else {
-      _showSnackbar("stop reading...");
+      FlushbarHelper.createInformation(
+        message: 'Stop reading data...',
+      ).show(context);
       _stopScanning();
     }
   }
+
+  /*
+   * WRITE TO NFC
+   */
 
   void _write(BuildContext context) async {
     _stopScanning();
@@ -80,28 +99,21 @@ class _HomePageState extends State<HomePage> {
     }).toList();
     NDEFMessage message = NDEFMessage.withRecords(records);
 
-    // Show dialog on Android (iOS has it's own one)
     if (Platform.isAndroid) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Scan the tag you want to write to"),
-          actions: <Widget>[
-            FlatButton(
-              child: const Text("Cancel"),
-              onPressed: () {
-                return;
-              },
-            ),
-          ],
-        ),
-      );
+      FlushbarHelper.createInformation(
+              message: 'Scan the tag you want to write to.')
+          .show(context);
     }
 
-    // Write to the first tag scanned
     await NFC.writeNDEF(message).first;
-    _showSnackbar("successfully saved");
+
+    FlushbarHelper.createSuccess(message: 'Successfully saved the data.')
+        .show(context);
   }
+
+  /*
+   * BOTTOMSHEET ACTIONS 
+   */
 
   void _onAddItemPressed() {
     setState(() {
@@ -110,25 +122,7 @@ class _HomePageState extends State<HomePage> {
 
     _controller =
         _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
-      final YeahButton submitButton = YeahButton(
-          buttonText: "Add Item", isSecondary: false, onPressed: _onSubmit);
-
-      return new Container(
-        decoration: new BoxDecoration(color: Colors.black12),
-        height: 260,
-        child: new Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  providerName,
-                  SizedBox(height: 12.0),
-                  providerPassword,
-                  SizedBox(height: 12.0),
-                  submitButton
-                ])),
-      );
+      return _createBottomsheetContent();
     });
 
     _controller.closed.then((value) {
@@ -155,10 +149,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /*
+   * LISTVIEW ACTIONS
+   */
+
   void _onDeleteItemPressed(item) {
     _items.removeAt(item);
     setState(() {});
   }
+
+  /*
+   * STATE ACTIONS
+   */
 
   @override
   void initState() {
@@ -179,70 +181,104 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(widget.title),
         automaticallyImplyLeading: false,
-        actions: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(right: 12.0),
-              child: GestureDetector(
-                onTap: () {
-                  _toggleScan();
-                },
-                child: Icon(
-                  Icons.file_download,
-                  size: 26.0,
-                ),
-              )),
-          Padding(
-              padding: EdgeInsets.only(right: 12.0),
-              child: GestureDetector(
-                onTap: () {
-                  _write(context);
-                },
-                child: Icon(
-                  Icons.file_upload,
-                  size: 26.0,
-                ),
-              )),
-          Padding(
-              padding: EdgeInsets.only(right: 12.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.popAndPushNamed(context, "/signin");
-                },
-                child: Icon(
-                  Icons.eject,
-                  size: 26.0,
-                ),
-              )),
-        ],
+        actions: _createToolbarActions(context),
       ),
       body: new Container(
-        child: _items.length == 0
-            ? Center(child: Text("Please scan your Cards."))
-            : new ListView.builder(
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      '${_items[index]}',
-                    ),
-                    trailing: new IconButton(
-                      icon: new Icon(Icons.delete),
-                      onPressed: () {
-                        _onDeleteItemPressed(index);
-                      },
-                    ),
-                  );
-                },
-              ),
+        child: _createListview(),
       ),
-      floatingActionButton: new FloatingActionButton(
-        child:
-            _isBottomsheetVisible ? new Icon(Icons.clear) : new Icon(Icons.add),
-        tooltip: 'Add task',
-        onPressed: () {
-          _isBottomsheetVisible ? _hideBottomSheet() : _onAddItemPressed();
-        },
-      ),
+      floatingActionButton: _createFab(),
+    );
+  }
+
+  /*
+   * CREATE WIDGETS
+   */
+
+  Container _createBottomsheetContent() {
+    final YeahButton submitButton = YeahButton(
+        buttonText: "Add Item", isSecondary: false, onPressed: _onSubmit);
+
+    return new Container(
+      decoration: new BoxDecoration(color: Colors.black12),
+      height: 260,
+      child: new Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                providerName,
+                SizedBox(height: 12.0),
+                providerPassword,
+                SizedBox(height: 12.0),
+                submitButton
+              ])),
+    );
+  }
+
+  List<Widget> _createToolbarActions(BuildContext context) {
+    return <Widget>[
+      Padding(
+          padding: EdgeInsets.only(right: 12.0),
+          child: GestureDetector(
+            onTap: () {
+              _toggleScan();
+            },
+            child: Icon(
+              CommunityMaterialIcons.download_outline,
+            ),
+          )),
+      Padding(
+          padding: EdgeInsets.only(right: 12.0),
+          child: GestureDetector(
+            onTap: () {
+              _write(context);
+            },
+            child: Icon(
+              CommunityMaterialIcons.upload_outline,
+            ),
+          )),
+      Padding(
+          padding: EdgeInsets.only(right: 12.0),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.popAndPushNamed(context, SigninPage.navigationRoute);
+            },
+            child: Icon(CommunityMaterialIcons.logout_variant),
+          )),
+    ];
+  }
+
+  Widget _createListview() {
+    return _items.length == 0
+        ? Center(child: Text("Please scan your Card."))
+        : new ListView.builder(
+            itemCount: _items.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(
+                  '${_items[index]}',
+                ),
+                trailing: new IconButton(
+                  icon: new Icon(CommunityMaterialIcons.delete_outline),
+                  onPressed: () {
+                    _onDeleteItemPressed(index);
+                  },
+                ),
+              );
+            },
+          );
+  }
+
+  FloatingActionButton _createFab() {
+    return new FloatingActionButton(
+      child: _isBottomsheetVisible
+          ? new Icon(CommunityMaterialIcons.close)
+          : new Icon(CommunityMaterialIcons.plus),
+      tooltip: 'Add item',
+      onPressed: () {
+        _isBottomsheetVisible ? _hideBottomSheet() : _onAddItemPressed();
+      },
     );
   }
 }
