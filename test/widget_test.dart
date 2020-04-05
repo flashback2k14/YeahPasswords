@@ -5,7 +5,7 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
+import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yeah_passwords/src/app.dart';
 
@@ -19,7 +19,7 @@ void main() {
     expect(find.text('1'), findsNothing);
 
     // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(CommunityMaterialIcons.plus));
     await tester.pump();
 
     // Verify that our counter has incremented.

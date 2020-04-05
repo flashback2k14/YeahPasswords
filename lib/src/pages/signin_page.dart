@@ -1,8 +1,11 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:yeah_passwords/src/models/user_model.dart';
+import 'package:yeah_passwords/src/pages/home_page.dart';
+import 'package:yeah_passwords/src/pages/signup_page.dart';
 import 'package:yeah_passwords/src/repositories/user_repository.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
@@ -11,36 +14,40 @@ class SigninPage extends StatefulWidget {
   SigninPage({Key key, this.title}) : super(key: key);
 
   final String title;
+  static final String navigationRoute = "/signin";
 
   @override
   _SigninPageState createState() => _SigninPageState();
 }
 
 class _SigninPageState extends State<SigninPage> {
-  YeahInput usernameInput = YeahInput(
+  final YeahInput usernameInput = YeahInput(
     labelText: "Username",
     isPassword: false,
     isLastInput: false,
   );
-  YeahInput passwordInput = YeahInput(
+
+  final YeahInput passwordInput = YeahInput(
     labelText: "Password",
     isPassword: true,
     isLastInput: true,
   );
 
-  void _showSnackbar(BuildContext context, String message) {
-    Scaffold.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void _performLogin(BuildContext context) async {
     if (usernameInput.getText().isEmpty || passwordInput.getText().isEmpty) {
-      _showSnackbar(context, "Empty inputs not allowed.");
+      FlushbarHelper.createError(
+        title: 'Sign in error.',
+        message: 'Empty inputs not allowed.',
+      ).show(context);
       return;
     }
 
     User foundUser = await UserRepository().findByName(usernameInput.getText());
     if (foundUser == null) {
-      _showSnackbar(context, "User not found.");
+      FlushbarHelper.createError(
+        title: 'Sign in error.',
+        message: 'User not found.',
+      ).show(context);
       return;
     }
 
@@ -48,28 +55,31 @@ class _SigninPageState extends State<SigninPage> {
     Digest enteredPasswordHash = sha256.convert(bytes);
 
     if (enteredPasswordHash.toString() != foundUser.passwordHash) {
-      _showSnackbar(context, "Password is not matching.");
+      FlushbarHelper.createError(
+        title: 'Sign in error.',
+        message: 'Password is not matching.',
+      ).show(context);
       return;
     }
 
     usernameInput.clear();
     passwordInput.clear();
 
-    Navigator.pushReplacementNamed(context, "/home");
+    Navigator.pushReplacementNamed(context, HomePage.navigationRoute);
   }
 
   void _performNavigation(BuildContext context) {
-    Navigator.pushNamed(context, "/signup");
+    Navigator.pushNamed(context, SignupPage.navigationRoute);
   }
 
   @override
   Widget build(BuildContext context) {
-    YeahButton signInButton = YeahButton(
+    final YeahButton signInButton = YeahButton(
         buttonText: "Sign In",
         isSecondary: false,
         onPressed: () => _performLogin(context));
 
-    YeahButton signUpButton = YeahButton(
+    final YeahButton signUpButton = YeahButton(
         buttonText: "Sign Up",
         isSecondary: true,
         onPressed: () => _performNavigation(context));

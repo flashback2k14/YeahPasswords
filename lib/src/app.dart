@@ -15,15 +15,15 @@ class App extends StatelessWidget {
       ),
       darkTheme: ThemeData(
           brightness: Brightness.dark, primarySwatch: Colors.lightGreen),
-      initialRoute: "/signin",
+      initialRoute: SigninPage.navigationRoute,
       routes: <String, WidgetBuilder>{
-        "/signin": (context) => SigninPage(
+        SigninPage.navigationRoute: (context) => SigninPage(
               title: 'Yeah! Password - Sign In',
             ),
-        "/signup": (context) => SignupPage(
+        SignupPage.navigationRoute: (context) => SignupPage(
               title: 'Yeah! Password - Sign Up',
             ),
-        "/home": (context) => HomePage(
+        HomePage.navigationRoute: (context) => HomePage(
               title: 'Yeah! Passwords - Home',
             )
       },
