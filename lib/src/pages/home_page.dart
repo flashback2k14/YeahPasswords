@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nfc_in_flutter/nfc_in_flutter.dart';
+import 'package:yeah_passwords/src/models/provider-item_model.dart';
 import 'package:yeah_passwords/src/pages/signin_page.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
@@ -20,13 +22,18 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const platform =
+      const MethodChannel('com.yeahdev.yeah_passwords/intent');
+
+  Future<bool> _checkNfcState;
+
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   PersistentBottomSheetController _controller;
   bool _isBottomsheetVisible;
 
   StreamSubscription<NDEFMessage> _stream;
 
-  List<String> _items = [];
+  List<ProviderItem> _items = [];
 
   final YeahInput providerName = YeahInput(
       labelText: "Provider name", isPassword: false, isLastInput: false);
@@ -53,7 +60,7 @@ class _HomePageState extends State<HomePage> {
         }
 
         for (NDEFRecord record in message.records) {
-          _items.add(record.data);
+          _items.add(ProviderItem.fromString(record.data));
           setState(() {});
         }
 
@@ -94,9 +101,10 @@ class _HomePageState extends State<HomePage> {
   void _write(BuildContext context) async {
     _stopScanning();
 
-    List<NDEFRecord> records = _items.map((record) {
-      return NDEFRecord.plain(record);
+    List<NDEFRecord> records = _items.map((providerItem) {
+      return NDEFRecord.plain(providerItem.toString());
     }).toList();
+
     NDEFMessage message = NDEFMessage.withRecords(records);
 
     if (Platform.isAndroid) {
@@ -142,7 +150,8 @@ class _HomePageState extends State<HomePage> {
   void _onSubmit() {
     if (providerName.getText().isNotEmpty &&
         providerPassword.getText().isNotEmpty) {
-      _items.add(providerName.getText() + " - " + providerPassword.getText());
+      _items.add(ProviderItem(
+          name: providerName.getText(), password: providerPassword.getText()));
       providerName.clear();
       providerPassword.clear();
       setState(() {});
@@ -166,6 +175,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _isBottomsheetVisible = false;
+    _checkNfcState = platform.invokeMethod("check_nfc_state");
   }
 
   @override
@@ -251,13 +261,28 @@ class _HomePageState extends State<HomePage> {
 
   Widget _createListview() {
     return _items.length == 0
-        ? Center(child: Text("Please scan your Card."))
+        ? Center(
+            child: Container(
+                child: Padding(
+                    padding: const EdgeInsets.all(36.0),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text("Please scan your Card."),
+                          SizedBox(height: 24.0),
+                          _createSettingsOpener()
+                        ]))),
+          )
         : new ListView.builder(
             itemCount: _items.length,
             itemBuilder: (context, index) {
               return ListTile(
                 title: Text(
-                  '${_items[index]}',
+                  '${_items[index].name}',
+                ),
+                subtitle: Text(
+                  '${_items[index].password}',
                 ),
                 trailing: new IconButton(
                   icon: new Icon(CommunityMaterialIcons.delete_outline),
@@ -268,6 +293,38 @@ class _HomePageState extends State<HomePage> {
               );
             },
           );
+  }
+
+  _createSettingsOpener() {
+    return FutureBuilder<bool>(
+        future: _checkNfcState,
+        builder: (context, AsyncSnapshot<bool> snapshot) {
+          if (!snapshot.hasData) {
+            return Text("Checking NFC state...");
+          }
+
+          if (!snapshot.data) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text("NFC is disabled."),
+                SizedBox(height: 12.0),
+                YeahButton(
+                    buttonText: "Open Settings",
+                    isSecondary: true,
+                    onPressed: () async {
+                      await platform.invokeMethod("toggle_nfc_state");
+                      setState(() {
+                        _checkNfcState =
+                            platform.invokeMethod("check_nfc_state");
+                      });
+                    })
+              ],
+            );
+          }
+
+          return Text("NFC is enabled.");
+        });
   }
 
   FloatingActionButton _createFab() {
@@ -283,4 +340,4 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// https://medium.com/flutter-community/flutter-beginners-guide-to-using-the-bottom-sheet-b8025573c433
+// https://materialdesignicons.com/
