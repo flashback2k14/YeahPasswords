@@ -11,6 +11,5 @@ void main() => runApp(App());
 // https://pusher.com/tutorials/local-data-flutter
 
 // https://github.com/guivazcabral/flutter_todo/blob/master/lib/main.dart
-// https://github.com/semlette/nfc_in_flutter/blob/master/example/lib/write_example_screen.dart
 
-// https://medium.com/flutter-community/flutter-beginners-guide-to-using-the-bottom-sheet-b8025573c433
+// https://materialdesignicons.com/
