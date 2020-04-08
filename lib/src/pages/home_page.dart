@@ -25,8 +25,6 @@ class _HomePageState extends State<HomePage> {
   static const platform =
       const MethodChannel('com.yeahdev.yeah_passwords/intent');
 
-  Future<bool> _checkNfcState;
-
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   PersistentBottomSheetController _controller;
   bool _isBottomsheetVisible;
@@ -56,6 +54,7 @@ class _HomePageState extends State<HomePage> {
           FlushbarHelper.createInformation(
             message: 'The card is empty.',
           ).show(context);
+          _stopScanning();
           return;
         }
 
@@ -175,7 +174,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _isBottomsheetVisible = false;
-    _checkNfcState = platform.invokeMethod("check_nfc_state");
   }
 
   @override
@@ -269,9 +267,17 @@ class _HomePageState extends State<HomePage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          Text("Please scan your Card."),
+                          Text(
+                            "Please scan your Card.",
+                            style: Theme.of(context).textTheme.display1,
+                          ),
                           SizedBox(height: 24.0),
-                          _createSettingsOpener()
+                          YeahButton(
+                              buttonText: "Open NFC Settings",
+                              isSecondary: true,
+                              onPressed: () async {
+                                await platform.invokeMethod("toggle_nfc_state");
+                              })
                         ]))),
           )
         : new ListView.builder(
@@ -295,38 +301,6 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  _createSettingsOpener() {
-    return FutureBuilder<bool>(
-        future: _checkNfcState,
-        builder: (context, AsyncSnapshot<bool> snapshot) {
-          if (!snapshot.hasData) {
-            return Text("Checking NFC state...");
-          }
-
-          if (!snapshot.data) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("NFC is disabled."),
-                SizedBox(height: 12.0),
-                YeahButton(
-                    buttonText: "Open Settings",
-                    isSecondary: true,
-                    onPressed: () async {
-                      await platform.invokeMethod("toggle_nfc_state");
-                      setState(() {
-                        _checkNfcState =
-                            platform.invokeMethod("check_nfc_state");
-                      });
-                    })
-              ],
-            );
-          }
-
-          return Text("NFC is enabled.");
-        });
-  }
-
   FloatingActionButton _createFab() {
     return new FloatingActionButton(
       child: _isBottomsheetVisible
@@ -340,4 +314,5 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// https://materialdesignicons.com/
+// https://pub.dev/packages/nfc_manager
+// https://medium.com/flutter-community/flutter-beginners-guide-to-using-the-bottom-sheet-b8025573c433
