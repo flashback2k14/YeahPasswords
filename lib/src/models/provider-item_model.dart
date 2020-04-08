@@ -6,7 +6,7 @@ class ProviderItem {
 
   ProviderItem.fromString(String savedValue) {
     List<String> parts = savedValue.split('#VP#');
-    name = parts[0];
+    name = parts[0].substring(2);
     password = parts[1];
   }
 
