@@ -1,11 +1,10 @@
-import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:nfc_in_flutter/nfc_in_flutter.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 import 'package:yeah_passwords/src/models/provider-item_model.dart';
 import 'package:yeah_passwords/src/pages/signin_page.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
@@ -29,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   PersistentBottomSheetController _controller;
   bool _isBottomsheetVisible;
 
-  StreamSubscription<NDEFMessage> _stream;
+  // StreamSubscription<NDEFMessage> _stream;
 
   List<ProviderItem> _items = [];
 
@@ -43,79 +42,98 @@ class _HomePageState extends State<HomePage> {
    * READ FROM NFC
    */
 
-  void _startScanning() {
+  void _readNfcData() {
+    FlushbarHelper.createInformation(
+      message: 'Start reading data...',
+    ).show(context);
+
     setState(() {
       _items.clear();
 
-      _stream = NFC
-          .readNDEF(alertMessage: "Custom message")
-          .listen((NDEFMessage message) {
-        if (message.isEmpty) {
-          FlushbarHelper.createInformation(
-            message: 'The card is empty.',
+      NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
+        Ndef ndef = Ndef.fromTag(tag);
+
+        if (ndef == null) {
+          const message = "Wrong NFC Tag format.";
+          FlushbarHelper.createError(
+            message: message,
           ).show(context);
-          _stopScanning();
+          NfcManager.instance.stopSession(errorMessageIOS: message);
           return;
         }
 
-        for (NDEFRecord record in message.records) {
-          _items.add(ProviderItem.fromString(record.data));
+        if (ndef.cachedMessage.byteLength == 0) {
+          const message = 'NFC Tag is empty.';
+          FlushbarHelper.createInformation(
+            message: message,
+          ).show(context);
+          NfcManager.instance.stopSession(errorMessageIOS: message);
+          return;
+        }
+
+        for (NdefRecord record in ndef.cachedMessage.records) {
+          _items.add(ProviderItem.fromString(
+              new String.fromCharCodes(record.payload)));
           setState(() {});
         }
 
-        _stopScanning();
-
-        FlushbarHelper.createSuccess(
-                message: "${message.records.length} records read.")
-            .show(context);
+        NfcManager.instance.stopSession();
       });
     });
-  }
-
-  void _stopScanning() {
-    _stream?.cancel();
-    setState(() {
-      _stream = null;
-    });
-  }
-
-  void _toggleScan() {
-    if (_stream == null) {
-      FlushbarHelper.createInformation(
-        message: 'Start reading data...',
-      ).show(context);
-      _startScanning();
-    } else {
-      FlushbarHelper.createInformation(
-        message: 'Stop reading data...',
-      ).show(context);
-      _stopScanning();
-    }
   }
 
   /*
    * WRITE TO NFC
    */
 
-  void _write(BuildContext context) async {
-    _stopScanning();
+  void _writeNfcData(BuildContext context) {
+    FlushbarHelper.createInformation(
+      message: 'Start writing data...',
+    ).show(context);
 
-    List<NDEFRecord> records = _items.map((providerItem) {
-      return NDEFRecord.plain(providerItem.toString());
-    }).toList();
-
-    NDEFMessage message = NDEFMessage.withRecords(records);
-
-    if (Platform.isAndroid) {
+    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
       FlushbarHelper.createInformation(
-              message: 'Scan the tag you want to write to.')
-          .show(context);
-    }
+        message: 'NFC Tag found.',
+      ).show(context);
 
-    await NFC.writeNDEF(message).first;
+      Ndef ndef = Ndef.fromTag(tag);
+      if (ndef == null) {
+        const message = "Wrong NFC Tag format.";
+        FlushbarHelper.createError(
+          message: message,
+        ).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
 
-    FlushbarHelper.createSuccess(message: 'Successfully saved the data.')
-        .show(context);
+      if (!ndef.isWritable) {
+        const message = "NFC Tag is not ndef writable.";
+        FlushbarHelper.createError(
+          message: message,
+        ).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      try {
+        List<NdefRecord> records = _items.map((providerItem) {
+          return NdefRecord.createText(providerItem.toString());
+        }).toList();
+        NdefMessage message = NdefMessage(records);
+
+        await ndef.write(message);
+
+        FlushbarHelper.createSuccess(
+          message: "Successfully saved the data.",
+        ).show(context);
+        NfcManager.instance.stopSession();
+      } catch (e) {
+        FlushbarHelper.createError(
+          message: e.toString(),
+        ).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: e.toString());
+      }
+    });
   }
 
   /*
@@ -177,12 +195,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  void dispose() {
-    _stopScanning();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -230,7 +242,7 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.only(right: 12.0),
           child: GestureDetector(
             onTap: () {
-              _toggleScan();
+              _readNfcData();
             },
             child: Icon(
               CommunityMaterialIcons.download_outline,
@@ -240,7 +252,7 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.only(right: 12.0),
           child: GestureDetector(
             onTap: () {
-              _write(context);
+              _writeNfcData(context);
             },
             child: Icon(
               CommunityMaterialIcons.upload_outline,
@@ -313,6 +325,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-// https://pub.dev/packages/nfc_manager
-// https://medium.com/flutter-community/flutter-beginners-guide-to-using-the-bottom-sheet-b8025573c433
