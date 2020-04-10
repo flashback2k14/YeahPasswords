@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       labelText: "Provider password", isPassword: true, isLastInput: true);
 
   /*
-   * READ FROM NFC
+   * NFC ACTIONS
    */
 
   void _readNfcData() {
@@ -93,10 +93,6 @@ class _HomePageState extends State<HomePage> {
       NfcManager.instance.stopSession();
     });
   }
-
-  /*
-   * WRITE TO NFC
-   */
 
   void _writeNfcData(BuildContext context) {
     FlushbarHelper.createInformation(
@@ -310,23 +306,62 @@ class _HomePageState extends State<HomePage> {
                               })
                         ]))),
           )
-        : new ListView.builder(
+        : new ListView.separated(
+            padding: EdgeInsets.only(top: 8.0),
             itemCount: _items.length,
             itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(
-                  '${_items[index].name}',
-                ),
-                subtitle: Text(
-                  '${_items[index].password}',
-                ),
-                trailing: new IconButton(
-                  icon: new Icon(CommunityMaterialIcons.delete_outline),
-                  onPressed: () {
-                    _onDeleteItemPressed(index);
+              return Card(
+                child: ListTile(
+                  leading: new IconButton(
+                    tooltip: "Provider name",
+                    icon:
+                        new Icon(CommunityMaterialIcons.alpha_p_circle_outline),
+                    onPressed: () {},
+                  ),
+                  title: Text(
+                    '${_items[index].name}',
+                  ),
+                  trailing: new IconButton(
+                    icon: new Icon(CommunityMaterialIcons.delete_outline),
+                    onPressed: () {
+                      _onDeleteItemPressed(index);
+                    },
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Provider password"),
+                          content: Text(_items[index].password),
+                          actions: [
+                            FlatButton(
+                              child: Text("Copy"),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(
+                                    text: _items[index].password));
+                                FlushbarHelper.createInformation(
+                                  message: 'Provider password copied.',
+                                ).show(context);
+                              },
+                            ),
+                            FlatButton(
+                              child: Text("Close"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          ],
+                        );
+                      },
+                    );
                   },
                 ),
+                margin: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
               );
+            },
+            separatorBuilder: (context, index) {
+              return Divider();
             },
           );
   }

@@ -2,9 +2,9 @@ import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 
 class YeahInput extends StatefulWidget {
-  YeahInput({this.key, this.labelText, this.isPassword, this.isLastInput});
+  YeahInput({Key key, this.labelText, this.isPassword, this.isLastInput})
+      : super(key: key);
 
-  final Key key;
   final String labelText;
   final bool isPassword;
   final bool isLastInput;
@@ -13,6 +13,11 @@ class YeahInput extends StatefulWidget {
 
   String getText() {
     return controller.text.trim();
+  }
+
+  YeahInput setText(String value) {
+    controller.text = value;
+    return this;
   }
 
   void clear() {

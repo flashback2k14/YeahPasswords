@@ -5,11 +5,13 @@ void main() => runApp(App());
 
 // https://bloclibrary.dev/#/recipesfluttershowsnackbar
 // https://medium.com/@azamsharp/understanding-global-state-in-flutter-using-redux-2017b7646574
-// https://flutter.dev/docs/development/ui/widgets/material
-
-// https://flutter.dev/docs/cookbook/persistence/sqlite
+// https://medium.com/flutter-community/use-environment-variables-in-ci-cd-for-flutter-apps-cbd6d9ac82c
 // https://pusher.com/tutorials/local-data-flutter
-
-// https://github.com/guivazcabral/flutter_todo/blob/master/lib/main.dart
-
 // https://materialdesignicons.com/
+
+// https://www.filledstacks.com/snippet/multi-fab-menu-in-flutter-with-unicorndial/
+
+// TODO:
+//  - improve theme
+//  - add new icon
+//  - refactor home_page
