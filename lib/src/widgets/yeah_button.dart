@@ -16,7 +16,10 @@ class YeahButton extends StatelessWidget {
       child: isSecondary
           ? FlatButton(child: Text(this.buttonText), onPressed: this.onPressed)
           : RaisedButton(
-              child: Text(this.buttonText), onPressed: this.onPressed),
+              color: Colors.cyan,
+              textColor: Colors.black,
+              child: Text(this.buttonText),
+              onPressed: this.onPressed),
     );
   }
 }

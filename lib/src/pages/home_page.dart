@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
 
   final String title;
-  static final String navigationRoute = "/home";
+  static final String navigationRoute = '/home';
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -30,10 +30,10 @@ class _HomePageState extends State<HomePage> {
   double _cardSize;
 
   final YeahInput providerName = YeahInput(
-      labelText: "Provider name", isPassword: false, isLastInput: false);
+      labelText: 'Provider name', isPassword: false, isLastInput: false);
 
   final YeahInput providerPassword = YeahInput(
-      labelText: "Provider password", isPassword: true, isLastInput: true);
+      labelText: 'Provider password', isPassword: true, isLastInput: true);
 
   /*
    * NFC ACTIONS
@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       Ndef ndef = Ndef.fromTag(tag);
 
       if (ndef == null) {
-        const message = "Wrong NFC Tag format.";
+        const message = 'Wrong NFC tag format.';
         FlushbarHelper.createError(
           message: message,
         ).show(context);
@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (ndef?.cachedMessage?.records?.isEmpty ?? true) {
-        const message = 'NFC Tag is empty.';
+        const message = 'NFC tag is empty.';
         FlushbarHelper.createInformation(
           message: message,
         ).show(context);
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
         ProviderItem item =
             ProviderItem.fromUint8List(ndef?.cachedMessage?.records[0].payload);
         if (item.isEmptyItem()) {
-          const message = 'NFC Tag is empty.';
+          const message = 'NFC tag is empty.';
           FlushbarHelper.createInformation(
             message: message,
           ).show(context);
@@ -106,12 +106,12 @@ class _HomePageState extends State<HomePage> {
 
     NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
       FlushbarHelper.createInformation(
-        message: 'NFC Tag found.',
+        message: 'NFC tag found.',
       ).show(context);
 
       Ndef ndef = Ndef.fromTag(tag);
       if (ndef == null) {
-        const message = "Wrong NFC Tag format.";
+        const message = 'Wrong NFC tag format.';
         FlushbarHelper.createError(
           message: message,
         ).show(context);
@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (!ndef.isWritable) {
-        const message = "NFC Tag is not writable.";
+        const message = 'NFC tag is not writable.';
         FlushbarHelper.createError(
           message: message,
         ).show(context);
@@ -132,18 +132,18 @@ class _HomePageState extends State<HomePage> {
         List<NdefRecord> records = _items.isEmpty
             ? [
                 NdefRecord.createMime(
-                    "text/plain", ProviderItem.createEmptyItem().toUint8List())
+                    'text/plain', ProviderItem.createEmptyItem().toUint8List())
               ]
             : _items
                 .map((providerItem) => NdefRecord.createMime(
-                    "text/plain", providerItem.toUint8List()))
+                    'text/plain', providerItem.toUint8List()))
                 .toList();
         NdefMessage message = NdefMessage(records);
 
         await ndef.write(message);
 
         FlushbarHelper.createSuccess(
-          message: "Successfully saved the data.",
+          message: 'Successfully saved the data.',
         ).show(context);
         NfcManager.instance.stopSession();
 
@@ -266,7 +266,7 @@ class _HomePageState extends State<HomePage> {
             providerPassword,
             SizedBox(height: 12.0),
             YeahButton(
-              buttonText: "Add entry",
+              buttonText: 'Add entry',
               isSecondary: false,
               onPressed: _onSubmit,
             ),
@@ -305,15 +305,15 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      "Please scan your NFC Tag.",
+                      'Please scan your NFC tag.',
                       style: Theme.of(context).textTheme.title,
                     ),
                     SizedBox(height: 24.0),
                     YeahButton(
-                      buttonText: "Open NFC Settings",
+                      buttonText: 'Open NFC Settings',
                       isSecondary: true,
                       onPressed: () async {
-                        await platform.invokeMethod("toggle_nfc_state");
+                        await platform.invokeMethod('toggle_nfc_state');
                       },
                     )
                   ],
@@ -329,7 +329,7 @@ class _HomePageState extends State<HomePage> {
                 margin: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
                 child: ListTile(
                   leading: new IconButton(
-                    tooltip: "Provider name",
+                    tooltip: 'Provider name',
                     icon:
                         new Icon(CommunityMaterialIcons.alpha_p_circle_outline),
                     onPressed: () {},
@@ -348,11 +348,11 @@ class _HomePageState extends State<HomePage> {
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text("Provider password"),
+                          title: Text('Provider password'),
                           content: Text(_items[index].password),
                           actions: [
                             FlatButton(
-                              child: Text("Copy"),
+                              child: Text('Copy'),
                               onPressed: () {
                                 Clipboard.setData(ClipboardData(
                                     text: _items[index].password));
@@ -362,7 +362,7 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
                             FlatButton(
-                              child: Text("Close"),
+                              child: Text('Close'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
