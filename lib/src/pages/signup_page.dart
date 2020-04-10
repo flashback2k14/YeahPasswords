@@ -82,16 +82,11 @@ class _SignupPageState extends State<SignupPage> {
     passwordInput.clear();
     confirmPasswordInput.clear();
 
-    Navigator.pushNamed(context, HomePage.navigationRoute);
+    Navigator.pushReplacementNamed(context, HomePage.navigationRoute);
   }
 
   @override
   Widget build(BuildContext context) {
-    final YeahButton signUpButton = YeahButton(
-        buttonText: "Sign up",
-        isSecondary: false,
-        onPressed: () => _performSignUp(context));
-
     return Scaffold(
         resizeToAvoidBottomPadding: false,
         appBar: AppBar(
@@ -113,7 +108,10 @@ class _SignupPageState extends State<SignupPage> {
                             SizedBox(height: 24.0),
                             confirmPasswordInput,
                             SizedBox(height: 24.0),
-                            signUpButton
+                            YeahButton(
+                                buttonText: "Sign up",
+                                isSecondary: false,
+                                onPressed: () => _performSignUp(context))
                           ]))));
         }));
   }

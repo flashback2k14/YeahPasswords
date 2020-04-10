@@ -74,16 +74,6 @@ class _SigninPageState extends State<SigninPage> {
 
   @override
   Widget build(BuildContext context) {
-    final YeahButton signInButton = YeahButton(
-        buttonText: "Sign In",
-        isSecondary: false,
-        onPressed: () => _performLogin(context));
-
-    final YeahButton signUpButton = YeahButton(
-        buttonText: "Sign Up",
-        isSecondary: true,
-        onPressed: () => _performNavigation(context));
-
     return Scaffold(
         resizeToAvoidBottomPadding: false,
         appBar: AppBar(
@@ -103,9 +93,15 @@ class _SigninPageState extends State<SigninPage> {
                             SizedBox(height: 24.0),
                             passwordInput,
                             SizedBox(height: 24.0),
-                            signInButton,
+                            YeahButton(
+                                buttonText: "Sign In",
+                                isSecondary: false,
+                                onPressed: () => _performLogin(context)),
                             SizedBox(height: 12.0),
-                            signUpButton,
+                            YeahButton(
+                                buttonText: "Sign Up",
+                                isSecondary: true,
+                                onPressed: () => _performNavigation(context)),
                           ]))));
         }));
   }
