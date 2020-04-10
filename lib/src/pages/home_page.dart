@@ -276,7 +276,8 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.only(right: 12.0),
           child: GestureDetector(
             onTap: () {
-              Navigator.popAndPushNamed(context, SigninPage.navigationRoute);
+              Navigator.pushReplacementNamed(
+                  context, SigninPage.navigationRoute);
             },
             child: Icon(CommunityMaterialIcons.logout_variant),
           )),
