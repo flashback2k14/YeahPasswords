@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +26,6 @@ class _HomePageState extends State<HomePage> {
   PersistentBottomSheetController _controller;
   bool _isBottomsheetVisible;
 
-  // StreamSubscription<NDEFMessage> _stream;
-
   List<ProviderItem> _items = [];
 
   final YeahInput providerName = YeahInput(
@@ -49,20 +45,33 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       _items.clear();
+    });
 
-      NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
-        Ndef ndef = Ndef.fromTag(tag);
+    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
+      Ndef ndef = Ndef.fromTag(tag);
 
-        if (ndef == null) {
-          const message = "Wrong NFC Tag format.";
-          FlushbarHelper.createError(
-            message: message,
-          ).show(context);
-          NfcManager.instance.stopSession(errorMessageIOS: message);
-          return;
-        }
+      if (ndef == null) {
+        const message = "Wrong NFC Tag format.";
+        FlushbarHelper.createError(
+          message: message,
+        ).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
 
-        if (ndef.cachedMessage.byteLength == 0) {
+      if (ndef?.cachedMessage?.records?.isEmpty ?? true) {
+        const message = 'NFC Tag is empty.';
+        FlushbarHelper.createInformation(
+          message: message,
+        ).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      if (ndef?.cachedMessage?.records?.length == 1) {
+        ProviderItem item =
+            ProviderItem.fromUint8List(ndef?.cachedMessage?.records[0].payload);
+        if (item.isEmptyItem()) {
           const message = 'NFC Tag is empty.';
           FlushbarHelper.createInformation(
             message: message,
@@ -70,15 +79,18 @@ class _HomePageState extends State<HomePage> {
           NfcManager.instance.stopSession(errorMessageIOS: message);
           return;
         }
+      }
 
-        for (NdefRecord record in ndef.cachedMessage.records) {
-          _items.add(ProviderItem.fromString(
-              new String.fromCharCodes(record.payload)));
-          setState(() {});
+      for (NdefRecord record in ndef.cachedMessage.records) {
+        ProviderItem item = ProviderItem.fromUint8List(record.payload);
+        if (item.isEmptyItem()) {
+          continue;
         }
+        _items.add(item);
+        setState(() {});
+      }
 
-        NfcManager.instance.stopSession();
-      });
+      NfcManager.instance.stopSession();
     });
   }
 
@@ -107,7 +119,7 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (!ndef.isWritable) {
-        const message = "NFC Tag is not ndef writable.";
+        const message = "NFC Tag is not writable.";
         FlushbarHelper.createError(
           message: message,
         ).show(context);
@@ -116,9 +128,15 @@ class _HomePageState extends State<HomePage> {
       }
 
       try {
-        List<NdefRecord> records = _items.map((providerItem) {
-          return NdefRecord.createText(providerItem.toString());
-        }).toList();
+        List<NdefRecord> records = _items.isEmpty
+            ? [
+                NdefRecord.createMime(
+                    "text/plain", ProviderItem.createEmptyItem().toUint8List())
+              ]
+            : _items
+                .map((providerItem) => NdefRecord.createMime(
+                    "text/plain", providerItem.toUint8List()))
+                .toList();
         NdefMessage message = NdefMessage(records);
 
         await ndef.write(message);
@@ -216,7 +234,7 @@ class _HomePageState extends State<HomePage> {
 
   Container _createBottomsheetContent() {
     final YeahButton submitButton = YeahButton(
-        buttonText: "Add Item", isSecondary: false, onPressed: _onSubmit);
+        buttonText: "Add entry", isSecondary: false, onPressed: _onSubmit);
 
     return new Container(
       decoration: new BoxDecoration(color: Colors.black12),
@@ -280,8 +298,8 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            "Please scan your Card.",
-                            style: Theme.of(context).textTheme.display1,
+                            "Please scan your NFC Tag.",
+                            style: Theme.of(context).textTheme.title,
                           ),
                           SizedBox(height: 24.0),
                           YeahButton(
