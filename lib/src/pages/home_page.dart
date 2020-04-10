@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   bool _isBottomsheetVisible;
 
   List<ProviderItem> _items = [];
+  double _cardSize;
 
   final YeahInput providerName = YeahInput(
       labelText: "Provider name", isPassword: false, isLastInput: false);
@@ -90,6 +91,10 @@ class _HomePageState extends State<HomePage> {
         setState(() {});
       }
 
+      setState(() {
+        _cardSize = ndef.cachedMessage.byteLength * 1.0 / ndef.maxSize;
+      });
+
       NfcManager.instance.stopSession();
     });
   }
@@ -141,6 +146,10 @@ class _HomePageState extends State<HomePage> {
           message: "Successfully saved the data.",
         ).show(context);
         NfcManager.instance.stopSession();
+
+        setState(() {
+          _cardSize = message.byteLength * 1.0 / ndef.maxSize;
+        });
       } catch (e) {
         FlushbarHelper.createError(
           message: e.toString(),
@@ -206,6 +215,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _isBottomsheetVisible = false;
+    _cardSize = 0.0;
   }
 
   @override
@@ -216,11 +226,24 @@ class _HomePageState extends State<HomePage> {
         title: Text(widget.title),
         automaticallyImplyLeading: false,
         actions: _createToolbarActions(context),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48.0),
+          child: Container(
+            padding: const EdgeInsets.all(12.0),
+            height: 48.0,
+            alignment: Alignment.center,
+            child: LinearProgressIndicator(
+              value: _cardSize,
+            ),
+          ),
+        ),
       ),
       body: new Container(
         child: _createListview(),
       ),
       floatingActionButton: _createFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _createBottomNavBar(),
     );
   }
 
@@ -229,50 +252,35 @@ class _HomePageState extends State<HomePage> {
    */
 
   Container _createBottomsheetContent() {
-    final YeahButton submitButton = YeahButton(
-        buttonText: "Add entry", isSecondary: false, onPressed: _onSubmit);
-
     return new Container(
       decoration: new BoxDecoration(color: Colors.black12),
       height: 260,
       child: new Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                providerName,
-                SizedBox(height: 12.0),
-                providerPassword,
-                SizedBox(height: 12.0),
-                submitButton
-              ])),
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            providerName,
+            SizedBox(height: 12.0),
+            providerPassword,
+            SizedBox(height: 12.0),
+            YeahButton(
+              buttonText: "Add entry",
+              isSecondary: false,
+              onPressed: _onSubmit,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   List<Widget> _createToolbarActions(BuildContext context) {
     return <Widget>[
-      Padding(
-          padding: EdgeInsets.only(right: 12.0),
-          child: GestureDetector(
-            onTap: () {
-              _readNfcData();
-            },
-            child: Icon(
-              CommunityMaterialIcons.download_outline,
-            ),
-          )),
-      Padding(
-          padding: EdgeInsets.only(right: 12.0),
-          child: GestureDetector(
-            onTap: () {
-              _writeNfcData(context);
-            },
-            child: Icon(
-              CommunityMaterialIcons.upload_outline,
-            ),
-          )),
-      Padding(
+      Tooltip(
+        message: 'Logout',
+        child: Padding(
           padding: EdgeInsets.only(right: 12.0),
           child: GestureDetector(
             onTap: () {
@@ -280,7 +288,9 @@ class _HomePageState extends State<HomePage> {
                   context, SigninPage.navigationRoute);
             },
             child: Icon(CommunityMaterialIcons.logout_variant),
-          )),
+          ),
+        ),
+      ),
     ];
   }
 
@@ -288,30 +298,35 @@ class _HomePageState extends State<HomePage> {
     return _items.length == 0
         ? Center(
             child: Container(
-                child: Padding(
-                    padding: const EdgeInsets.all(36.0),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            "Please scan your NFC Tag.",
-                            style: Theme.of(context).textTheme.title,
-                          ),
-                          SizedBox(height: 24.0),
-                          YeahButton(
-                              buttonText: "Open NFC Settings",
-                              isSecondary: true,
-                              onPressed: () async {
-                                await platform.invokeMethod("toggle_nfc_state");
-                              })
-                        ]))),
+              child: Padding(
+                padding: const EdgeInsets.all(36.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Please scan your NFC Tag.",
+                      style: Theme.of(context).textTheme.title,
+                    ),
+                    SizedBox(height: 24.0),
+                    YeahButton(
+                      buttonText: "Open NFC Settings",
+                      isSecondary: true,
+                      onPressed: () async {
+                        await platform.invokeMethod("toggle_nfc_state");
+                      },
+                    )
+                  ],
+                ),
+              ),
+            ),
           )
         : new ListView.separated(
             padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
             itemCount: _items.length,
             itemBuilder: (context, index) {
               return Card(
+                margin: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
                 child: ListTile(
                   leading: new IconButton(
                     tooltip: "Provider name",
@@ -358,7 +373,6 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-                margin: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
               );
             },
             separatorBuilder: (context, index) {
@@ -369,13 +383,47 @@ class _HomePageState extends State<HomePage> {
 
   FloatingActionButton _createFab() {
     return new FloatingActionButton(
+      tooltip: 'Add item',
+      elevation: 4.0,
       child: _isBottomsheetVisible
           ? new Icon(CommunityMaterialIcons.close)
           : new Icon(CommunityMaterialIcons.plus),
-      tooltip: 'Add item',
       onPressed: () {
         _isBottomsheetVisible ? _hideBottomSheet() : _onAddItemPressed();
       },
+    );
+  }
+
+  BottomAppBar _createBottomNavBar() {
+    return new BottomAppBar(
+      shape: CircularNotchedRectangle(),
+      notchMargin: 6.0,
+      child: new Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Tooltip(
+            message: 'Load data from NFC tag.',
+            child: IconButton(
+              icon: Icon(CommunityMaterialIcons.download_outline),
+              padding: EdgeInsets.only(left: 12.0),
+              onPressed: () {
+                _readNfcData();
+              },
+            ),
+          ),
+          Tooltip(
+            message: 'Save data to NFC tag.',
+            child: IconButton(
+              icon: Icon(CommunityMaterialIcons.upload_outline),
+              padding: EdgeInsets.only(right: 12.0),
+              onPressed: () {
+                _writeNfcData(context);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
