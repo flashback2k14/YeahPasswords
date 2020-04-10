@@ -12,7 +12,5 @@ void main() => runApp(App());
 // https://www.filledstacks.com/snippet/multi-fab-menu-in-flutter-with-unicorndial/
 
 // TODO:
-//  - improve theme
 //  - improve snackbars
-//  - add new icon
 //  - refactor home_page

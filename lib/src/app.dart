@@ -10,11 +10,10 @@ class App extends StatelessWidget {
       title: 'Yeah! Passwords',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.lightGreen,
+        brightness: Brightness.dark,
+        accentColor: Colors.cyan,
+        accentTextTheme: Typography(platform: TargetPlatform.android).white,
       ),
-      darkTheme: ThemeData(
-          brightness: Brightness.dark, primarySwatch: Colors.lightGreen),
       initialRoute: SigninPage.navigationRoute,
       routes: <String, WidgetBuilder>{
         SigninPage.navigationRoute: (context) => SigninPage(
