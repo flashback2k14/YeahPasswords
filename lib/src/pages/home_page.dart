@@ -307,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                         ]))),
           )
         : new ListView.separated(
-            padding: EdgeInsets.only(top: 8.0),
+            padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
             itemCount: _items.length,
             itemBuilder: (context, index) {
               return Card(

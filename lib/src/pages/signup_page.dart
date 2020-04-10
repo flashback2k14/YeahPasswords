@@ -93,13 +93,14 @@ class _SignupPageState extends State<SignupPage> {
         onPressed: () => _performSignUp(context));
 
     return Scaffold(
+        resizeToAvoidBottomPadding: false,
         appBar: AppBar(
           title: Text(widget.title),
           automaticallyImplyLeading: false,
         ),
         body: Builder(builder: (BuildContext context) {
           return Center(
-              child: Container(
+              child: SingleChildScrollView(
                   child: Padding(
                       padding: const EdgeInsets.all(36.0),
                       child: Column(
