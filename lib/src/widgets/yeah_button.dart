@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class YeahButton extends StatelessWidget {
-  const YeahButton({this.buttonText, this.isSecondary, this.onPressed});
+  const YeahButton({Key key, this.buttonText, this.isSecondary, this.onPressed})
+      : super(key: key);
 
   final String buttonText;
   final bool isSecondary;
