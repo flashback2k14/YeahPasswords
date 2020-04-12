@@ -2,8 +2,12 @@ import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/material.dart';
 
 class YeahInput extends StatefulWidget {
-  YeahInput({Key key, this.labelText, this.isPassword, this.isLastInput})
-      : super(key: key);
+  YeahInput({
+    Key key,
+    this.labelText,
+    this.isPassword,
+    this.isLastInput,
+  }) : super(key: key);
 
   final String labelText;
   final bool isPassword;
@@ -13,11 +17,6 @@ class YeahInput extends StatefulWidget {
 
   String getText() {
     return controller.text.trim();
-  }
-
-  YeahInput setText(String value) {
-    controller.text = value;
-    return this;
   }
 
   void clear() {
@@ -40,28 +39,29 @@ class _YeahInputState extends State<YeahInput> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-        controller: widget.controller,
-        obscureText: _showPassword,
-        keyboardType: TextInputType.text,
-        decoration: InputDecoration(
-            labelText: widget.labelText,
-            border: OutlineInputBorder(),
-            suffixIcon: widget.isPassword
-                ? IconButton(
-                    icon: Icon(_showPassword
-                        ? CommunityMaterialIcons.eye_outline
-                        : CommunityMaterialIcons.eye_off_outline),
-                    onPressed: () {
-                      setState(() {
-                        _showPassword = !_showPassword;
-                      });
-                    },
-                  )
-                : null),
-        textInputAction:
-            widget.isLastInput ? TextInputAction.done : TextInputAction.next,
-        onSubmitted: (_) => widget.isLastInput
-            ? FocusScope.of(context).unfocus()
-            : FocusScope.of(context).nextFocus());
+      controller: widget.controller,
+      obscureText: _showPassword,
+      keyboardType: TextInputType.text,
+      decoration: InputDecoration(
+          labelText: widget.labelText,
+          border: OutlineInputBorder(),
+          suffixIcon: widget.isPassword
+              ? IconButton(
+                  icon: Icon(_showPassword
+                      ? CommunityMaterialIcons.eye_outline
+                      : CommunityMaterialIcons.eye_off_outline),
+                  onPressed: () {
+                    setState(() {
+                      _showPassword = !_showPassword;
+                    });
+                  },
+                )
+              : null),
+      textInputAction:
+          widget.isLastInput ? TextInputAction.done : TextInputAction.next,
+      onSubmitted: (_) => widget.isLastInput
+          ? FocusScope.of(context).unfocus()
+          : FocusScope.of(context).nextFocus(),
+    );
   }
 }

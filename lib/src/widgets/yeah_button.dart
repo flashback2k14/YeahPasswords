@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
 class YeahButton extends StatelessWidget {
-  const YeahButton({Key key, this.buttonText, this.isSecondary, this.onPressed})
-      : super(key: key);
+  const YeahButton({
+    Key key,
+    this.buttonText,
+    this.isSecondary,
+    this.onPressed,
+  }) : super(key: key);
 
   final String buttonText;
   final bool isSecondary;
@@ -14,12 +18,16 @@ class YeahButton extends StatelessWidget {
       height: 48,
       minWidth: double.infinity,
       child: isSecondary
-          ? FlatButton(child: Text(this.buttonText), onPressed: this.onPressed)
+          ? FlatButton(
+              child: Text(this.buttonText),
+              onPressed: this.onPressed,
+            )
           : RaisedButton(
               color: Colors.cyan,
               textColor: Colors.black,
               child: Text(this.buttonText),
-              onPressed: this.onPressed),
+              onPressed: this.onPressed,
+            ),
     );
   }
 }
