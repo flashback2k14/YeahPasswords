@@ -1,6 +1,6 @@
-# YeahPasswords
+# Yeah! Passwords
 
-Password manager built with Flutter
+Offline password manager built with Flutter. Save your passwords to a NFC tag.
 
 ## Getting Started
 
@@ -31,3 +31,11 @@ cd /Users/flbk/Library/Android/sdk/platform-tools
 cd /Users/flbk/Library/Android/sdk/platform-tools
 ./adb kill-server
 ```
+
+## links
+
+- https://bloclibrary.dev/#/recipesfluttershowsnackbar
+- https://medium.com/@azamsharp/understanding-global-state-in-flutter-using-redux-2017b7646574
+- https://medium.com/flutter-community/use-environment-variables-in-ci-cd-for-flutter-apps-cbd6d9ac82c
+- https://pusher.com/tutorials/local-data-flutter
+- https://materialdesignicons.com/
