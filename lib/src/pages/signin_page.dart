@@ -65,10 +65,17 @@ class _SigninPageState extends State<SigninPage> {
       return;
     }
 
+    Navigator.pushReplacementNamed(
+      context,
+      HomePage.navigationRoute,
+      arguments: {
+        'username': foundUser.name,
+        'passwordHash': enteredPasswordHash.toString(),
+      },
+    );
+
     usernameInput.clear();
     passwordInput.clear();
-
-    Navigator.pushReplacementNamed(context, HomePage.navigationRoute);
   }
 
   void _performNavigation(BuildContext context) {

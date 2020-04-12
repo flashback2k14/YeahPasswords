@@ -7,7 +7,6 @@ import 'package:yeah_passwords/src/models/provider-item_model.dart';
 import 'package:yeah_passwords/src/pages/signin_page.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_fab.dart';
-import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({
@@ -189,11 +188,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, Object> routerArgs =
+        ModalRoute.of(context).settings.arguments;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(widget.title),
-        actions: _createToolbarActions(context),
+        actions: _createToolbarActions(context, routerArgs['username']),
         bottom: _createToolbarBottom(),
       ),
       body: Container(
@@ -211,12 +213,18 @@ class _HomePageState extends State<HomePage> {
    * CREATE WIDGETS
    */
 
-  List<Widget> _createToolbarActions(BuildContext context) {
+  List<Widget> _createToolbarActions(BuildContext context, String username) {
     return <Widget>[
+      Center(
+        child: Text(
+          username,
+          style: Theme.of(context).textTheme.headline6,
+        ),
+      ),
       Tooltip(
         message: 'Logout',
         child: Padding(
-          padding: const EdgeInsets.only(right: 12.0),
+          padding: const EdgeInsets.only(left: 12.0, right: 12.0),
           child: GestureDetector(
             onTap: () {
               Navigator.pushReplacementNamed(
@@ -255,7 +263,7 @@ class _HomePageState extends State<HomePage> {
                   children: <Widget>[
                     Text(
                       'Please scan your NFC tag.',
-                      style: Theme.of(context).textTheme.title,
+                      style: Theme.of(context).textTheme.headline6,
                     ),
                     const SizedBox(height: 24.0),
                     YeahButton(
