@@ -41,7 +41,7 @@ class _SignupPageState extends State<SignupPage> {
     isLastInput: true,
   );
 
-  Future _createNewUser() async {
+  Future<String> _createNewUser() async {
     List<int> bytes = utf8.encode(passwordInput.getText());
     Digest passwordHash = sha256.convert(bytes);
 
@@ -51,6 +51,8 @@ class _SignupPageState extends State<SignupPage> {
     );
 
     await UserRepository().insert(newUser);
+
+    return passwordHash.toString();
   }
 
   void _performSignUp(BuildContext context) async {
@@ -81,13 +83,20 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
-    await _createNewUser();
+    String passwordHash = await _createNewUser();
+
+    Navigator.pushReplacementNamed(
+      context,
+      HomePage.navigationRoute,
+      arguments: {
+        'username': usernameInput.getText(),
+        'passwordHash': passwordHash.toString(),
+      },
+    );
 
     usernameInput.clear();
     passwordInput.clear();
     confirmPasswordInput.clear();
-
-    Navigator.pushReplacementNamed(context, HomePage.navigationRoute);
   }
 
   @override
