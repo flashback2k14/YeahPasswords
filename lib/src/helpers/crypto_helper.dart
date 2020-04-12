@@ -6,21 +6,20 @@ class CryptoHelper {
   factory CryptoHelper() => _instance;
   static final CryptoHelper _instance = CryptoHelper._internal();
 
-  Encrypter _encrypter;
   final _iv = IV.fromLength(8);
 
-  CryptoHelper._internal() {
-    final key = Key.fromUtf8(
-        "kdfjdfahgdfje4rkewfmdfnj!?egn434g4389g7dndkfjhg4r389rgerg");
-    this._encrypter = Encrypter(Salsa20(key));
+  CryptoHelper._internal();
+
+  Uint8List encrypt(List<int> plainTextBytes, String seckey) {
+    final key = Key.fromUtf8(seckey);
+    final encrypter = Encrypter(Salsa20(key));
+    return encrypter.encryptBytes(plainTextBytes, iv: this._iv).bytes;
   }
 
-  Uint8List encrypt(List<int> plainTextBytes) {
-    return this._encrypter.encryptBytes(plainTextBytes, iv: this._iv).bytes;
-  }
-
-  String decrypt(Uint8List encryptedText) {
-    Encrypted encrypted = Encrypted(encryptedText);
-    return this._encrypter.decrypt(encrypted, iv: this._iv);
+  String decrypt(Uint8List encryptedText, String seckey) {
+    final key = Key.fromUtf8(seckey);
+    final encrypter = Encrypter(Salsa20(key));
+    final encrypted = Encrypted(encryptedText);
+    return encrypter.decrypt(encrypted, iv: this._iv);
   }
 }

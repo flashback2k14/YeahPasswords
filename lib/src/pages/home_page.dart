@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
    * NFC ACTIONS
    */
 
-  void _readNfcData() {
+  void _readNfcData(String passwordHash) {
     FlushbarHelper.createInformation(
       message: 'Start reading data...',
     ).show(context);
@@ -65,6 +65,7 @@ class _HomePageState extends State<HomePage> {
       if (ndef?.cachedMessage?.records?.length == 1) {
         ProviderItem item = ProviderItem.fromUint8List(
           ndef?.cachedMessage?.records?.first?.payload,
+          passwordHash,
         );
 
         if (item.isEmptyItem()) {
@@ -78,7 +79,10 @@ class _HomePageState extends State<HomePage> {
       }
 
       for (NdefRecord record in ndef.cachedMessage.records) {
-        ProviderItem item = ProviderItem.fromUint8List(record.payload);
+        ProviderItem item = ProviderItem.fromUint8List(
+          record.payload,
+          passwordHash,
+        );
 
         if (item.isEmptyItem()) {
           continue;
@@ -96,7 +100,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _writeNfcData(BuildContext context) {
+  void _writeNfcData(String passwordHash) {
     FlushbarHelper.createInformation(
       message: 'Start writing data...',
     ).show(context);
@@ -130,14 +134,18 @@ class _HomePageState extends State<HomePage> {
             ? [
                 NdefRecord.createMime(
                   'text/plain',
-                  ProviderItem.createEmptyItem().toUint8List(),
+                  ProviderItem.createEmptyItem().toUint8List(
+                    passwordHash,
+                  ),
                 )
               ]
             : _items
                 .map(
                   (providerItem) => NdefRecord.createMime(
                     'text/plain',
-                    providerItem.toUint8List(),
+                    providerItem.toUint8List(
+                      passwordHash,
+                    ),
                   ),
                 )
                 .toList();
@@ -205,7 +213,7 @@ class _HomePageState extends State<HomePage> {
         onProviderItemSubmitted: this._handleProviderItemSubmitted,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _createBottomNavBar(),
+      bottomNavigationBar: _createBottomNavBar(routerArgs['passwordHash']),
     );
   }
 
@@ -338,7 +346,7 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  BottomAppBar _createBottomNavBar() {
+  BottomAppBar _createBottomNavBar(String passwordHash) {
     return BottomAppBar(
       shape: const CircularNotchedRectangle(),
       notchMargin: 6.0,
@@ -352,7 +360,7 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(CommunityMaterialIcons.download_outline),
               padding: const EdgeInsets.only(left: 12.0),
               onPressed: () {
-                _readNfcData();
+                _readNfcData(passwordHash);
               },
             ),
           ),
@@ -362,7 +370,7 @@ class _HomePageState extends State<HomePage> {
               icon: const Icon(CommunityMaterialIcons.upload_outline),
               padding: const EdgeInsets.only(right: 12.0),
               onPressed: () {
-                _writeNfcData(context);
+                _writeNfcData(passwordHash);
               },
             ),
           ),
