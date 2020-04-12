@@ -10,7 +10,10 @@ import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class SignupPage extends StatefulWidget {
-  SignupPage({Key key, this.title}) : super(key: key);
+  SignupPage({
+    Key key,
+    this.title,
+  }) : super(key: key);
 
   final String title;
   static final String navigationRoute = "/signup";
@@ -43,7 +46,9 @@ class _SignupPageState extends State<SignupPage> {
     Digest passwordHash = sha256.convert(bytes);
 
     User newUser = User(
-        name: usernameInput.getText(), passwordHash: passwordHash.toString());
+      name: usernameInput.getText(),
+      passwordHash: passwordHash.toString(),
+    );
 
     await UserRepository().insert(newUser);
   }
@@ -88,31 +93,39 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomPadding: false,
-        appBar: AppBar(
-          title: Text(widget.title),
-          automaticallyImplyLeading: false,
-        ),
-        body: Builder(builder: (BuildContext context) {
+      resizeToAvoidBottomPadding: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(widget.title),
+      ),
+      body: Builder(
+        builder: (BuildContext context) {
           return Center(
-              child: SingleChildScrollView(
-                  child: Padding(
-                      padding: const EdgeInsets.all(36.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            usernameInput,
-                            SizedBox(height: 24.0),
-                            passwordInput,
-                            SizedBox(height: 24.0),
-                            confirmPasswordInput,
-                            SizedBox(height: 24.0),
-                            YeahButton(
-                                buttonText: "Sign up",
-                                isSecondary: false,
-                                onPressed: () => _performSignUp(context))
-                          ]))));
-        }));
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(36.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    usernameInput,
+                    const SizedBox(height: 24.0),
+                    passwordInput,
+                    const SizedBox(height: 24.0),
+                    confirmPasswordInput,
+                    const SizedBox(height: 24.0),
+                    YeahButton(
+                      buttonText: "Sign up",
+                      isSecondary: false,
+                      onPressed: () => _performSignUp(context),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

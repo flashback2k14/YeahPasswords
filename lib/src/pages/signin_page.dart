@@ -11,7 +11,10 @@ import 'package:yeah_passwords/src/widgets/yeah_button.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class SigninPage extends StatefulWidget {
-  SigninPage({Key key, this.title}) : super(key: key);
+  SigninPage({
+    Key key,
+    this.title,
+  }) : super(key: key);
 
   final String title;
   static final String navigationRoute = "/signin";
@@ -75,34 +78,43 @@ class _SigninPageState extends State<SigninPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomPadding: false,
-        appBar: AppBar(
-          title: Text(widget.title),
-          automaticallyImplyLeading: false,
-        ),
-        body: Builder(builder: (BuildContext context) {
+      resizeToAvoidBottomPadding: true,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(widget.title),
+      ),
+      body: Builder(
+        builder: (BuildContext context) {
           return Center(
-              child: SingleChildScrollView(
-                  child: Padding(
-                      padding: const EdgeInsets.all(36.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            usernameInput,
-                            SizedBox(height: 24.0),
-                            passwordInput,
-                            SizedBox(height: 24.0),
-                            YeahButton(
-                                buttonText: "Sign In",
-                                isSecondary: false,
-                                onPressed: () => _performLogin(context)),
-                            SizedBox(height: 12.0),
-                            YeahButton(
-                                buttonText: "Sign Up",
-                                isSecondary: true,
-                                onPressed: () => _performNavigation(context)),
-                          ]))));
-        }));
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(36.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    usernameInput,
+                    const SizedBox(height: 24.0),
+                    passwordInput,
+                    const SizedBox(height: 24.0),
+                    YeahButton(
+                      buttonText: "Sign In",
+                      isSecondary: false,
+                      onPressed: () => _performLogin(context),
+                    ),
+                    const SizedBox(height: 12.0),
+                    YeahButton(
+                      buttonText: "Sign Up",
+                      isSecondary: true,
+                      onPressed: () => _performNavigation(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

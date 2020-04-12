@@ -20,7 +20,7 @@ class CryptoHelper {
   }
 
   String decrypt(Uint8List encryptedText) {
-    Encrypted encrypted = new Encrypted(encryptedText);
+    Encrypted encrypted = Encrypted(encryptedText);
     return this._encrypter.decrypt(encrypted, iv: this._iv);
   }
 }

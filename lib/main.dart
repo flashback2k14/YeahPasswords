@@ -13,4 +13,3 @@ void main() => runApp(App());
 
 // TODO:
 //  - improve snackbars
-//  - refactor home_page

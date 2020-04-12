@@ -7,8 +7,8 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Yeah! Passwords',
       debugShowCheckedModeBanner: false,
+      title: 'Yeah! Passwords',
       theme: ThemeData(
         brightness: Brightness.dark,
         accentColor: Colors.cyan,

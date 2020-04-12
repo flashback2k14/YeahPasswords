@@ -6,10 +6,14 @@ import 'package:nfc_manager/nfc_manager.dart';
 import 'package:yeah_passwords/src/models/provider-item_model.dart';
 import 'package:yeah_passwords/src/pages/signin_page.dart';
 import 'package:yeah_passwords/src/widgets/yeah_button.dart';
+import 'package:yeah_passwords/src/widgets/yeah_fab.dart';
 import 'package:yeah_passwords/src/widgets/yeah_input.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key, this.title}) : super(key: key);
+  HomePage({
+    Key key,
+    this.title,
+  }) : super(key: key);
 
   final String title;
   static final String navigationRoute = '/home';
@@ -22,18 +26,8 @@ class _HomePageState extends State<HomePage> {
   static const platform =
       const MethodChannel('com.yeahdev.yeah_passwords/intent');
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  PersistentBottomSheetController _controller;
-  bool _isBottomsheetVisible;
-
-  List<ProviderItem> _items = [];
   double _cardSize;
-
-  final YeahInput providerName = YeahInput(
-      labelText: 'Provider name', isPassword: false, isLastInput: false);
-
-  final YeahInput providerPassword = YeahInput(
-      labelText: 'Provider password', isPassword: true, isLastInput: true);
+  List<ProviderItem> _items = [];
 
   /*
    * NFC ACTIONS
@@ -70,8 +64,10 @@ class _HomePageState extends State<HomePage> {
       }
 
       if (ndef?.cachedMessage?.records?.length == 1) {
-        ProviderItem item =
-            ProviderItem.fromUint8List(ndef?.cachedMessage?.records[0].payload);
+        ProviderItem item = ProviderItem.fromUint8List(
+          ndef?.cachedMessage?.records?.first?.payload,
+        );
+
         if (item.isEmptyItem()) {
           const message = 'NFC tag is empty.';
           FlushbarHelper.createInformation(
@@ -84,9 +80,11 @@ class _HomePageState extends State<HomePage> {
 
       for (NdefRecord record in ndef.cachedMessage.records) {
         ProviderItem item = ProviderItem.fromUint8List(record.payload);
+
         if (item.isEmptyItem()) {
           continue;
         }
+
         _items.add(item);
         setState(() {});
       }
@@ -132,11 +130,17 @@ class _HomePageState extends State<HomePage> {
         List<NdefRecord> records = _items.isEmpty
             ? [
                 NdefRecord.createMime(
-                    'text/plain', ProviderItem.createEmptyItem().toUint8List())
+                  'text/plain',
+                  ProviderItem.createEmptyItem().toUint8List(),
+                )
               ]
             : _items
-                .map((providerItem) => NdefRecord.createMime(
-                    'text/plain', providerItem.toUint8List()))
+                .map(
+                  (providerItem) => NdefRecord.createMime(
+                    'text/plain',
+                    providerItem.toUint8List(),
+                  ),
+                )
                 .toList();
         NdefMessage message = NdefMessage(records);
 
@@ -160,47 +164,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   /*
-   * BOTTOMSHEET ACTIONS 
-   */
-
-  void _onAddItemPressed() {
-    setState(() {
-      _isBottomsheetVisible = true;
-    });
-
-    _controller =
-        _scaffoldKey.currentState.showBottomSheet((BuildContext context) {
-      return _createBottomsheetContent();
-    });
-
-    _controller.closed.then((value) {
-      setState(() {
-        _isBottomsheetVisible = false;
-      });
-    });
-  }
-
-  void _hideBottomSheet() {
-    _controller.close();
-    setState(() {
-      _isBottomsheetVisible = false;
-    });
-  }
-
-  void _onSubmit() {
-    if (providerName.getText().isNotEmpty &&
-        providerPassword.getText().isNotEmpty) {
-      _items.add(ProviderItem(
-          name: providerName.getText(), password: providerPassword.getText()));
-      providerName.clear();
-      providerPassword.clear();
-      setState(() {});
-    }
-  }
-
-  /*
    * LISTVIEW ACTIONS
    */
+
+  void _handleProviderItemSubmitted(ProviderItem providerItem) {
+    _items.add(providerItem);
+    setState(() {});
+  }
 
   void _onDeleteItemPressed(item) {
     _items.removeAt(item);
@@ -214,34 +184,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _isBottomsheetVisible = false;
     _cardSize = 0.0;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       appBar: AppBar(
-        title: Text(widget.title),
         automaticallyImplyLeading: false,
+        title: Text(widget.title),
         actions: _createToolbarActions(context),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48.0),
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            height: 48.0,
-            alignment: Alignment.center,
-            child: LinearProgressIndicator(
-              value: _cardSize,
-            ),
-          ),
-        ),
+        bottom: _createToolbarBottom(),
       ),
-      body: new Container(
+      body: Container(
         child: _createListview(),
       ),
-      floatingActionButton: _createFab(),
+      floatingActionButton: YeahFab(
+        onProviderItemSubmitted: this._handleProviderItemSubmitted,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _createBottomNavBar(),
     );
@@ -251,47 +211,36 @@ class _HomePageState extends State<HomePage> {
    * CREATE WIDGETS
    */
 
-  Container _createBottomsheetContent() {
-    return new Container(
-      decoration: new BoxDecoration(color: Colors.black12),
-      height: 260,
-      child: new Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            providerName,
-            SizedBox(height: 12.0),
-            providerPassword,
-            SizedBox(height: 12.0),
-            YeahButton(
-              buttonText: 'Add entry',
-              isSecondary: false,
-              onPressed: _onSubmit,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   List<Widget> _createToolbarActions(BuildContext context) {
     return <Widget>[
       Tooltip(
         message: 'Logout',
         child: Padding(
-          padding: EdgeInsets.only(right: 12.0),
+          padding: const EdgeInsets.only(right: 12.0),
           child: GestureDetector(
             onTap: () {
               Navigator.pushReplacementNamed(
                   context, SigninPage.navigationRoute);
             },
-            child: Icon(CommunityMaterialIcons.logout_variant),
+            child: const Icon(CommunityMaterialIcons.logout_variant),
           ),
         ),
       ),
     ];
+  }
+
+  PreferredSize _createToolbarBottom() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(48.0),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        height: 48.0,
+        alignment: Alignment.center,
+        child: LinearProgressIndicator(
+          value: _cardSize,
+        ),
+      ),
+    );
   }
 
   Widget _createListview() {
@@ -308,7 +257,7 @@ class _HomePageState extends State<HomePage> {
                       'Please scan your NFC tag.',
                       style: Theme.of(context).textTheme.title,
                     ),
-                    SizedBox(height: 24.0),
+                    const SizedBox(height: 24.0),
                     YeahButton(
                       buttonText: 'Open NFC Settings',
                       isSecondary: true,
@@ -321,24 +270,23 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           )
-        : new ListView.separated(
-            padding: EdgeInsets.only(top: 8.0, bottom: 8.0),
+        : ListView.separated(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
             itemCount: _items.length,
             itemBuilder: (context, index) {
               return Card(
-                margin: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
+                margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
                 child: ListTile(
-                  leading: new IconButton(
-                    tooltip: 'Provider name',
-                    icon:
-                        new Icon(CommunityMaterialIcons.alpha_p_circle_outline),
-                    onPressed: () {},
+                  leading: Tooltip(
+                    message: 'Provider name',
+                    child: const Icon(
+                        CommunityMaterialIcons.alpha_p_circle_outline),
                   ),
                   title: Text(
                     '${_items[index].name}',
                   ),
-                  trailing: new IconButton(
-                    icon: new Icon(CommunityMaterialIcons.delete_outline),
+                  trailing: IconButton(
+                    icon: const Icon(CommunityMaterialIcons.delete_outline),
                     onPressed: () {
                       _onDeleteItemPressed(index);
                     },
@@ -352,17 +300,18 @@ class _HomePageState extends State<HomePage> {
                           content: Text(_items[index].password),
                           actions: [
                             FlatButton(
-                              child: Text('Copy'),
+                              child: const Text('Copy'),
                               onPressed: () {
-                                Clipboard.setData(ClipboardData(
-                                    text: _items[index].password));
+                                Clipboard.setData(
+                                  ClipboardData(text: _items[index].password),
+                                );
                                 FlushbarHelper.createInformation(
                                   message: 'Provider password copied.',
                                 ).show(context);
                               },
                             ),
                             FlatButton(
-                              child: Text('Close'),
+                              child: const Text('Close'),
                               onPressed: () {
                                 Navigator.of(context).pop();
                               },
@@ -381,32 +330,19 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  FloatingActionButton _createFab() {
-    return new FloatingActionButton(
-      tooltip: 'Add item',
-      elevation: 4.0,
-      child: _isBottomsheetVisible
-          ? new Icon(CommunityMaterialIcons.close)
-          : new Icon(CommunityMaterialIcons.plus),
-      onPressed: () {
-        _isBottomsheetVisible ? _hideBottomSheet() : _onAddItemPressed();
-      },
-    );
-  }
-
   BottomAppBar _createBottomNavBar() {
-    return new BottomAppBar(
-      shape: CircularNotchedRectangle(),
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
       notchMargin: 6.0,
-      child: new Row(
+      child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Tooltip(
             message: 'Load data from NFC tag.',
             child: IconButton(
-              icon: Icon(CommunityMaterialIcons.download_outline),
-              padding: EdgeInsets.only(left: 12.0),
+              icon: const Icon(CommunityMaterialIcons.download_outline),
+              padding: const EdgeInsets.only(left: 12.0),
               onPressed: () {
                 _readNfcData();
               },
@@ -415,8 +351,8 @@ class _HomePageState extends State<HomePage> {
           Tooltip(
             message: 'Save data to NFC tag.',
             child: IconButton(
-              icon: Icon(CommunityMaterialIcons.upload_outline),
-              padding: EdgeInsets.only(right: 12.0),
+              icon: const Icon(CommunityMaterialIcons.upload_outline),
+              padding: const EdgeInsets.only(right: 12.0),
               onPressed: () {
                 _writeNfcData(context);
               },
