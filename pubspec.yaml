@@ -28,6 +28,7 @@ dependencies:
   nfc_manager: 1.4.0-dev+2
   community_material_icon: 3.5.95
   flushbar: 1.10.0
+  flappy_search_bar: 1.7.2
 
 dev_dependencies:
   flutter_test:
