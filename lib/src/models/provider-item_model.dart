@@ -17,9 +17,9 @@ class ProviderItem {
     password = "EMPTY";
   }
 
-  ProviderItem.fromUint8List(Uint8List payload) {
+  ProviderItem.fromUint8List(Uint8List payload, String seckey) {
     this.fromString(
-      CryptoHelper().decrypt(payload),
+      CryptoHelper().decrypt(payload, seckey),
     );
   }
 
@@ -34,11 +34,11 @@ class ProviderItem {
     this.password = parts[1];
   }
 
-  Uint8List toUint8List() {
+  Uint8List toUint8List(String seckey) {
     String savableValue = this.toString();
     List<int> bytes = utf8.encode(savableValue);
     return Uint8List.fromList(
-      CryptoHelper().encrypt(bytes),
+      CryptoHelper().encrypt(bytes, seckey),
     );
   }
 
