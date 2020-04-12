@@ -1,4 +1,5 @@
 import 'package:community_material_icon/community_material_icon.dart';
+import 'package:flappy_search_bar/flappy_search_bar.dart';
 import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage> {
       const MethodChannel('com.yeahdev.yeah_passwords/intent');
 
   double _cardSize;
+  bool _isSearching;
   List<ProviderItem> _items = [];
 
   /*
@@ -192,6 +194,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _cardSize = 0.0;
+    _isSearching = false;
   }
 
   @override
@@ -200,14 +203,9 @@ class _HomePageState extends State<HomePage> {
         ModalRoute.of(context).settings.arguments;
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(widget.title),
-        actions: _createToolbarActions(context, routerArgs['username']),
-        bottom: _createToolbarBottom(),
-      ),
+      appBar: _createAppBar(context, routerArgs),
       body: Container(
-        child: _createListview(),
+        child: _createListView(),
       ),
       floatingActionButton: YeahFab(
         onProviderItemSubmitted: this._handleProviderItemSubmitted,
@@ -220,6 +218,19 @@ class _HomePageState extends State<HomePage> {
   /*
    * CREATE WIDGETS
    */
+
+  /*
+   * TOOLBAR 
+   */
+
+  AppBar _createAppBar(BuildContext context, Map<String, Object> routerArgs) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      title: Text(widget.title),
+      actions: _createToolbarActions(context, routerArgs['username']),
+      bottom: _createToolbarBottom(),
+    );
+  }
 
   List<Widget> _createToolbarActions(BuildContext context, String username) {
     return <Widget>[
@@ -259,92 +270,151 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _createListview() {
-    return _items.length == 0
-        ? Center(
-            child: Container(
-              child: Padding(
-                padding: const EdgeInsets.all(36.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Please scan your NFC tag.',
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                    const SizedBox(height: 24.0),
-                    YeahButton(
-                      buttonText: 'Open NFC Settings',
-                      isSecondary: true,
-                      onPressed: () async {
-                        await platform.invokeMethod('toggle_nfc_state');
-                      },
-                    )
-                  ],
-                ),
+  /*
+   * LISTVIEW
+   */
+
+  Widget _createListView() {
+    return _items.isEmpty
+        ? _createEmptyListView()
+        : _isSearching
+            ? _createSearchableListView()
+            : _createNotSearchableListView();
+  }
+
+  Center _createEmptyListView() {
+    return Center(
+      child: Container(
+        child: Padding(
+          padding: const EdgeInsets.all(36.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Please scan your NFC tag.',
+                style: Theme.of(context).textTheme.headline6,
               ),
-            ),
-          )
-        : ListView.separated(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-            itemCount: _items.length,
-            itemBuilder: (context, index) {
-              return Card(
-                margin: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
-                child: ListTile(
-                  leading: Tooltip(
-                    message: 'Provider name',
-                    child: const Icon(
-                        CommunityMaterialIcons.alpha_p_circle_outline),
-                  ),
-                  title: Text(
-                    '${_items[index].name}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(CommunityMaterialIcons.delete_outline),
+              const SizedBox(height: 24.0),
+              YeahButton(
+                buttonText: 'Open NFC Settings',
+                isSecondary: true,
+                onPressed: () async {
+                  await platform.invokeMethod('toggle_nfc_state');
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  SearchBar<ProviderItem> _createSearchableListView() {
+    return SearchBar<ProviderItem>(
+      searchBarPadding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 0.0),
+      icon: Padding(
+        padding: const EdgeInsets.only(left: 12.0),
+        child: const Icon(
+          CommunityMaterialIcons.magnify,
+          color: Colors.white,
+        ),
+      ),
+      textStyle: Theme.of(context).textTheme.headline6,
+      cancellationWidget: const Icon(CommunityMaterialIcons.close),
+      emptyWidget: Center(
+        child: Text(
+          "No provider items found.",
+          style: Theme.of(context).textTheme.headline6,
+        ),
+      ),
+      minimumChars: 1,
+      suggestions: _items,
+      onSearch: (searchText) async {
+        var result = searchText.isEmpty
+            ? _items
+            : _items
+                .where(
+                  (ProviderItem p) =>
+                      p.name.toLowerCase().startsWith(searchText.toLowerCase()),
+                )
+                .toList();
+        return result;
+      },
+      onItemFound: (ProviderItem item, int index) {
+        return Container(
+          child: _createListViewItem(
+            _items.indexOf(item),
+          ),
+        );
+      },
+    );
+  }
+
+  ListView _createNotSearchableListView() {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+      itemCount: _items.length,
+      itemBuilder: (context, index) {
+        return _createListViewItem(index);
+      },
+    );
+  }
+
+  Card _createListViewItem(int index) {
+    return Card(
+      margin: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+      child: ListTile(
+        leading: Tooltip(
+          message: 'Provider name',
+          child: const Icon(CommunityMaterialIcons.alpha_p_circle_outline),
+        ),
+        title: Text(
+          '${_items[index].name}',
+        ),
+        trailing: IconButton(
+          icon: const Icon(CommunityMaterialIcons.delete_outline),
+          onPressed: () {
+            _onDeleteItemPressed(index);
+          },
+        ),
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Provider password'),
+                content: Text(_items[index].password),
+                actions: [
+                  FlatButton(
+                    child: const Text('Copy'),
                     onPressed: () {
-                      _onDeleteItemPressed(index);
+                      Clipboard.setData(
+                        ClipboardData(text: _items[index].password),
+                      );
+                      FlushbarHelper.createInformation(
+                        message: 'Provider password copied.',
+                      ).show(context);
                     },
                   ),
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Provider password'),
-                          content: Text(_items[index].password),
-                          actions: [
-                            FlatButton(
-                              child: const Text('Copy'),
-                              onPressed: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: _items[index].password),
-                                );
-                                FlushbarHelper.createInformation(
-                                  message: 'Provider password copied.',
-                                ).show(context);
-                              },
-                            ),
-                            FlatButton(
-                              child: const Text('Close'),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
+                  FlatButton(
+                    child: const Text('Close'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ],
               );
             },
-            separatorBuilder: (context, index) {
-              return Divider();
-            },
           );
+        },
+      ),
+    );
   }
+
+  /*
+   * BOTTOM NAVBAR
+   */
 
   BottomAppBar _createBottomNavBar(String passwordHash) {
     return BottomAppBar(
@@ -354,25 +424,47 @@ class _HomePageState extends State<HomePage> {
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Tooltip(
-            message: 'Load data from NFC tag.',
-            child: IconButton(
-              icon: const Icon(CommunityMaterialIcons.download_outline),
-              padding: const EdgeInsets.only(left: 12.0),
-              onPressed: () {
-                _readNfcData(passwordHash);
-              },
-            ),
+          Row(
+            children: <Widget>[
+              Tooltip(
+                message: 'Open search',
+                child: IconButton(
+                  icon: const Icon(CommunityMaterialIcons.magnify),
+                  padding: const EdgeInsets.only(left: 12.0),
+                  onPressed: _items.isEmpty
+                      ? null
+                      : () {
+                          setState(() {
+                            _isSearching = !_isSearching;
+                          });
+                        },
+                ),
+              ),
+            ],
           ),
-          Tooltip(
-            message: 'Save data to NFC tag.',
-            child: IconButton(
-              icon: const Icon(CommunityMaterialIcons.upload_outline),
-              padding: const EdgeInsets.only(right: 12.0),
-              onPressed: () {
-                _writeNfcData(passwordHash);
-              },
-            ),
+          Row(
+            children: <Widget>[
+              Tooltip(
+                message: 'Load data from NFC tag.',
+                child: IconButton(
+                  icon: const Icon(CommunityMaterialIcons.download_outline),
+                  padding: const EdgeInsets.only(right: 12.0),
+                  onPressed: () {
+                    _readNfcData(passwordHash);
+                  },
+                ),
+              ),
+              Tooltip(
+                message: 'Save data to NFC tag.',
+                child: IconButton(
+                  icon: const Icon(CommunityMaterialIcons.upload_outline),
+                  padding: const EdgeInsets.only(right: 12.0),
+                  onPressed: () {
+                    _writeNfcData(passwordHash);
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
