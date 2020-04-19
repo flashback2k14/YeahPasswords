@@ -105,13 +105,13 @@ class _SigninPageState extends State<SigninPage> {
                     passwordInput,
                     const SizedBox(height: 24.0),
                     YeahButton(
-                      buttonText: "Sign In",
+                      buttonText: "Sign in",
                       isSecondary: false,
                       onPressed: () => _performLogin(context),
                     ),
                     const SizedBox(height: 12.0),
                     YeahButton(
-                      buttonText: "Sign Up",
+                      buttonText: "Sign up",
                       isSecondary: true,
                       onPressed: () => _performNavigation(context),
                     ),

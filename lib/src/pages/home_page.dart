@@ -367,10 +367,22 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         leading: Tooltip(
           message: 'Provider name',
-          child: const Icon(CommunityMaterialIcons.alpha_p_circle_outline),
+          child: Container(
+            padding: const EdgeInsets.only(right: 16.0),
+            decoration: const BoxDecoration(
+              border: const Border(
+                right: const BorderSide(
+                  width: 1.0,
+                  color: Colors.white24,
+                ),
+              ),
+            ),
+            child: const Icon(CommunityMaterialIcons.alpha_p_circle_outline),
+          ),
         ),
         title: Text(
           '${_items[index].name}',
+          style: Theme.of(context).textTheme.headline6,
         ),
         trailing: IconButton(
           icon: const Icon(CommunityMaterialIcons.delete_outline),
@@ -383,7 +395,10 @@ class _HomePageState extends State<HomePage> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('Provider password'),
+                title: Text(
+                  'Provider password',
+                  style: Theme.of(context).textTheme.headline5,
+                ),
                 content: Text(_items[index].password),
                 actions: [
                   FlatButton(
