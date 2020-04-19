@@ -11,17 +11,17 @@ class App extends StatelessWidget {
       title: 'Yeah! Passwords',
       theme: ThemeData(
         brightness: Brightness.dark,
-        accentColor: Colors.cyan,
+        accentColor: Colors.tealAccent,
         accentTextTheme:
             Typography.material2018(platform: TargetPlatform.android).white,
       ),
       initialRoute: SigninPage.navigationRoute,
       routes: <String, WidgetBuilder>{
         SigninPage.navigationRoute: (context) => SigninPage(
-              title: 'Yeah! Password - Sign In',
+              title: 'Yeah! Password - Sign in',
             ),
         SignupPage.navigationRoute: (context) => SignupPage(
-              title: 'Yeah! Password - Sign Up',
+              title: 'Yeah! Password - Sign up',
             ),
         HomePage.navigationRoute: (context) => HomePage(
               title: 'Yeah! Passwords',

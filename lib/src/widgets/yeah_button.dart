@@ -23,7 +23,7 @@ class YeahButton extends StatelessWidget {
               onPressed: this.onPressed,
             )
           : RaisedButton(
-              color: Colors.cyan,
+              color: Colors.tealAccent,
               textColor: Colors.black,
               child: Text(this.buttonText),
               onPressed: this.onPressed,

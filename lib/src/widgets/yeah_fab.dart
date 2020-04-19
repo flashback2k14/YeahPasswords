@@ -55,7 +55,7 @@ class _YeahFabState extends State<YeahFab> {
 
   Container _createBottomsheetContent() {
     return new Container(
-      decoration: const BoxDecoration(color: Colors.black12),
+      decoration: BoxDecoration(color: Color(0xFF212121)),
       height: 240,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12.0, 36.0, 12.0, 12.0),
