@@ -20,7 +20,11 @@ class YeahInput extends StatefulWidget {
   }
 
   void clear() {
-    controller.clear();
+    if (controller.text.isNotEmpty) {
+      Future.delayed(Duration(microseconds: 500), () {
+        controller.clear();
+      });
+    }
   }
 
   @override
@@ -28,18 +32,27 @@ class YeahInput extends StatefulWidget {
 }
 
 class _YeahInputState extends State<YeahInput> {
+  FocusNode _focusNode;
   bool _showPassword;
 
   @override
   void initState() {
     super.initState();
+    _focusNode = FocusNode();
     _showPassword = widget.isPassword;
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: widget.controller,
+      focusNode: _focusNode,
       obscureText: _showPassword,
       keyboardType: TextInputType.text,
       decoration: InputDecoration(
@@ -59,9 +72,8 @@ class _YeahInputState extends State<YeahInput> {
               : null),
       textInputAction:
           widget.isLastInput ? TextInputAction.done : TextInputAction.next,
-      onSubmitted: (_) => widget.isLastInput
-          ? FocusScope.of(context).unfocus()
-          : FocusScope.of(context).nextFocus(),
+      onSubmitted: (_) =>
+          widget.isLastInput ? _focusNode.unfocus() : _focusNode.nextFocus(),
     );
   }
 }

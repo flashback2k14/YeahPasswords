@@ -23,168 +23,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const platform =
+  static const PLATFORM =
       const MethodChannel('com.yeahdev.yeah_passwords/intent');
 
   double _cardSize;
   bool _isSearching;
   List<ProviderItem> _items = [];
-
-  /*
-   * NFC ACTIONS
-   */
-
-  void _readNfcData(String passwordHash) {
-    FlushbarHelper.createInformation(
-      message: 'Start reading data...',
-    ).show(context);
-
-    setState(() {
-      _items.clear();
-    });
-
-    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
-      Ndef ndef = Ndef.fromTag(tag);
-
-      if (ndef == null) {
-        const message = 'Wrong NFC tag format.';
-        FlushbarHelper.createError(
-          message: message,
-        ).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
-        return;
-      }
-
-      if (ndef?.cachedMessage?.records?.isEmpty ?? true) {
-        const message = 'NFC tag is empty.';
-        FlushbarHelper.createInformation(
-          message: message,
-        ).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
-        return;
-      }
-
-      if (ndef?.cachedMessage?.records?.length == 1) {
-        ProviderItem item = ProviderItem.fromUint8List(
-          ndef?.cachedMessage?.records?.first?.payload,
-          passwordHash,
-        );
-
-        if (item.isEmptyItem()) {
-          const message = 'NFC tag is empty.';
-          FlushbarHelper.createInformation(
-            message: message,
-          ).show(context);
-          NfcManager.instance.stopSession(errorMessageIOS: message);
-          return;
-        }
-      }
-
-      for (NdefRecord record in ndef.cachedMessage.records) {
-        ProviderItem item = ProviderItem.fromUint8List(
-          record.payload,
-          passwordHash,
-        );
-
-        if (item.isEmptyItem()) {
-          continue;
-        }
-
-        _items.add(item);
-        setState(() {});
-      }
-
-      setState(() {
-        _cardSize = ndef.cachedMessage.byteLength * 1.0 / ndef.maxSize;
-      });
-
-      NfcManager.instance.stopSession();
-    });
-  }
-
-  void _writeNfcData(String passwordHash) {
-    FlushbarHelper.createInformation(
-      message: 'Start writing data...',
-    ).show(context);
-
-    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
-      FlushbarHelper.createInformation(
-        message: 'NFC tag found.',
-      ).show(context);
-
-      Ndef ndef = Ndef.fromTag(tag);
-      if (ndef == null) {
-        const message = 'Wrong NFC tag format.';
-        FlushbarHelper.createError(
-          message: message,
-        ).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
-        return;
-      }
-
-      if (!ndef.isWritable) {
-        const message = 'NFC tag is not writable.';
-        FlushbarHelper.createError(
-          message: message,
-        ).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
-        return;
-      }
-
-      try {
-        List<NdefRecord> records = _items.isEmpty
-            ? [
-                NdefRecord.createMime(
-                  'text/plain',
-                  ProviderItem.createEmptyItem().toUint8List(
-                    passwordHash,
-                  ),
-                )
-              ]
-            : _items
-                .map(
-                  (providerItem) => NdefRecord.createMime(
-                    'text/plain',
-                    providerItem.toUint8List(
-                      passwordHash,
-                    ),
-                  ),
-                )
-                .toList();
-        NdefMessage message = NdefMessage(records);
-
-        await ndef.write(message);
-
-        FlushbarHelper.createSuccess(
-          message: 'Successfully saved the data.',
-        ).show(context);
-        NfcManager.instance.stopSession();
-
-        setState(() {
-          _cardSize = message.byteLength * 1.0 / ndef.maxSize;
-        });
-      } catch (e) {
-        FlushbarHelper.createError(
-          message: e.toString(),
-        ).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: e.toString());
-      }
-    });
-  }
-
-  /*
-   * LISTVIEW ACTIONS
-   */
-
-  void _handleProviderItemSubmitted(ProviderItem providerItem) {
-    _items.add(providerItem);
-    setState(() {});
-  }
-
-  void _onDeleteItemPressed(item) {
-    _items.removeAt(item);
-    setState(() {});
-  }
 
   /*
    * STATE ACTIONS
@@ -216,7 +60,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /*
-   * CREATE WIDGETS
+   * WIDGETS
    */
 
   /*
@@ -300,7 +144,7 @@ class _HomePageState extends State<HomePage> {
                 buttonText: 'Open NFC Settings',
                 isSecondary: true,
                 onPressed: () async {
-                  await platform.invokeMethod('toggle_nfc_state');
+                  await PLATFORM.invokeMethod('toggle_nfc_state');
                 },
               )
             ],
@@ -484,5 +328,167 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  /*
+   * ACTIONS
+   */
+
+  /*
+   * NFC ACTIONS
+   */
+
+  void _readNfcData(String passwordHash) {
+    FlushbarHelper.createInformation(message: 'Start reading data...')
+        .show(context);
+
+    setState(() {
+      _cardSize = 0.0;
+      _items.clear();
+    });
+
+    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
+      Ndef ndef = Ndef.fromTag(tag);
+
+      if (ndef == null) {
+        const message = 'Wrong NFC tag format.';
+        FlushbarHelper.createError(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      if (ndef?.cachedMessage?.records?.isEmpty ?? true) {
+        const message = 'NFC tag is empty.';
+        FlushbarHelper.createInformation(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      if (ndef?.cachedMessage?.records?.length == 1) {
+        ProviderItem item = ProviderItem.fromUint8List(
+          ndef?.cachedMessage?.records?.first?.payload,
+          passwordHash,
+        );
+
+        if (item.isEmptyItem()) {
+          const message = 'NFC tag is empty.';
+          FlushbarHelper.createInformation(message: message).show(context);
+          NfcManager.instance.stopSession(errorMessageIOS: message);
+          return;
+        }
+      }
+
+      for (NdefRecord record in ndef.cachedMessage.records) {
+        ProviderItem item = ProviderItem.fromUint8List(
+          record.payload,
+          passwordHash,
+        );
+
+        if (item.isEmptyItem()) {
+          continue;
+        }
+
+        _items.add(item);
+      }
+
+      _sortItems();
+
+      setState(() {
+        _cardSize = ndef.cachedMessage.byteLength * 1.0 / ndef.maxSize;
+      });
+
+      NfcManager.instance.stopSession();
+    });
+  }
+
+  void _writeNfcData(String passwordHash) {
+    FlushbarHelper.createInformation(message: 'Start writing data...')
+        .show(context);
+
+    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
+      FlushbarHelper.createInformation(message: 'NFC tag found.').show(context);
+
+      Ndef ndef = Ndef.fromTag(tag);
+      if (ndef == null) {
+        const message = 'Wrong NFC tag format.';
+        FlushbarHelper.createError(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      if (!ndef.isWritable) {
+        const message = 'NFC tag is not writable.';
+        FlushbarHelper.createError(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+        return;
+      }
+
+      try {
+        List<NdefRecord> records = _items.isEmpty
+            ? [
+                NdefRecord.createMime(
+                  'text/plain',
+                  ProviderItem.createEmptyItem().toUint8List(
+                    passwordHash,
+                  ),
+                )
+              ]
+            : _items
+                .map(
+                  (providerItem) => NdefRecord.createMime(
+                    'text/plain',
+                    providerItem.toUint8List(
+                      passwordHash,
+                    ),
+                  ),
+                )
+                .toList();
+        NdefMessage message = NdefMessage(records);
+
+        await ndef.write(message);
+
+        FlushbarHelper.createSuccess(message: 'Successfully saved the data.')
+            .show(context);
+        NfcManager.instance.stopSession();
+
+        setState(() {
+          _cardSize = message.byteLength * 1.0 / ndef.maxSize;
+        });
+      } on PlatformException catch (e) {
+        String message = e.message ?? 'Something went wrong. Please try again.';
+        FlushbarHelper.createError(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+      } catch (e) {
+        String message = e.message ?? 'Something went wrong. Please try again.';
+        FlushbarHelper.createError(message: message).show(context);
+        NfcManager.instance.stopSession(errorMessageIOS: message);
+      }
+    });
+  }
+
+  /*
+   * LISTVIEW ACTIONS
+   */
+
+  void _handleProviderItemSubmitted(ProviderItem providerItem) {
+    _items.add(providerItem);
+    _sortItems();
+    setState(() {});
+  }
+
+  void _onDeleteItemPressed(item) {
+    _items.removeAt(item);
+    _sortItems();
+    setState(() {});
+  }
+
+  /*
+   * HELPER
+   */
+
+  void _sortItems() {
+    _items.sort((ProviderItem a, ProviderItem b) {
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
   }
 }
