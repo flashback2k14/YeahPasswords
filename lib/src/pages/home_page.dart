@@ -245,7 +245,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 content: Text(_items[index].password),
                 actions: [
-                  FlatButton(
+                  TextButton(
                     child: const Text('Copy'),
                     onPressed: () {
                       Clipboard.setData(
@@ -256,7 +256,7 @@ class _HomePageState extends State<HomePage> {
                       ).show(context);
                     },
                   ),
-                  FlatButton(
+                  TextButton(
                     child: const Text('Close'),
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -347,20 +347,20 @@ class _HomePageState extends State<HomePage> {
       _items.clear();
     });
 
-    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
-      Ndef ndef = Ndef.fromTag(tag);
+    NfcManager.instance.startSession(onDiscovered: (NfcTag tag) async {
+      Ndef ndef = Ndef.from(tag);
 
       if (ndef == null) {
         const message = 'Wrong NFC tag format.';
         FlushbarHelper.createError(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
         return;
       }
 
       if (ndef?.cachedMessage?.records?.isEmpty ?? true) {
         const message = 'NFC tag is empty.';
         FlushbarHelper.createInformation(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
         return;
       }
 
@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage> {
         if (item.isEmptyItem()) {
           const message = 'NFC tag is empty.';
           FlushbarHelper.createInformation(message: message).show(context);
-          NfcManager.instance.stopSession(errorMessageIOS: message);
+          NfcManager.instance.stopSession(errorMessage: message);
           return;
         }
       }
@@ -405,21 +405,21 @@ class _HomePageState extends State<HomePage> {
     FlushbarHelper.createInformation(message: 'Start writing data...')
         .show(context);
 
-    NfcManager.instance.startTagSession(onDiscovered: (NfcTag tag) async {
+    NfcManager.instance.startSession(onDiscovered: (NfcTag tag) async {
       FlushbarHelper.createInformation(message: 'NFC tag found.').show(context);
 
-      Ndef ndef = Ndef.fromTag(tag);
+      Ndef ndef = Ndef.from(tag);
       if (ndef == null) {
         const message = 'Wrong NFC tag format.';
         FlushbarHelper.createError(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
         return;
       }
 
       if (!ndef.isWritable) {
         const message = 'NFC tag is not writable.';
         FlushbarHelper.createError(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
         return;
       }
 
@@ -457,11 +457,11 @@ class _HomePageState extends State<HomePage> {
       } on PlatformException catch (e) {
         String message = e.message ?? 'Something went wrong. Please try again.';
         FlushbarHelper.createError(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
       } catch (e) {
         String message = e.message ?? 'Something went wrong. Please try again.';
         FlushbarHelper.createError(message: message).show(context);
-        NfcManager.instance.stopSession(errorMessageIOS: message);
+        NfcManager.instance.stopSession(errorMessage: message);
       }
     });
   }

@@ -18,13 +18,19 @@ class YeahButton extends StatelessWidget {
       height: 48,
       minWidth: double.infinity,
       child: isSecondary
-          ? FlatButton(
+          ? TextButton(
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+              ),
               child: Text(this.buttonText),
               onPressed: this.onPressed,
             )
-          : RaisedButton(
-              color: Colors.tealAccent,
-              textColor: Colors.black,
+          : ElevatedButton(
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Colors.tealAccent),
+              ),
               child: Text(this.buttonText),
               onPressed: this.onPressed,
             ),

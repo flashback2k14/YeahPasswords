@@ -21,9 +21,7 @@ class YeahInput extends StatefulWidget {
 
   void clear() {
     if (controller.text.isNotEmpty) {
-      Future.delayed(Duration(microseconds: 500), () {
-        controller.clear();
-      });
+      controller.clear();
     }
   }
 
@@ -58,11 +56,20 @@ class _YeahInputState extends State<YeahInput> {
       decoration: InputDecoration(
           labelText: widget.labelText,
           border: OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.tealAccent),
+          ),
+          labelStyle: TextStyle(
+            color: Colors.white,
+          ),
           suffixIcon: widget.isPassword
               ? IconButton(
-                  icon: Icon(_showPassword
-                      ? CommunityMaterialIcons.eye_outline
-                      : CommunityMaterialIcons.eye_off_outline),
+                  icon: Icon(
+                    _showPassword
+                        ? CommunityMaterialIcons.eye_outline
+                        : CommunityMaterialIcons.eye_off_outline,
+                    color: Colors.grey.shade300,
+                  ),
                   onPressed: () {
                     setState(() {
                       _showPassword = !_showPassword;

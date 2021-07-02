@@ -102,7 +102,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomPadding: true,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(widget.title),
@@ -114,7 +114,7 @@ class _SignupPageState extends State<SignupPage> {
               child: Padding(
                 padding: const EdgeInsets.all(36.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     usernameInput,

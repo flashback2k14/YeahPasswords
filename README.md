@@ -22,7 +22,7 @@ samples, guidance on mobile development, and a full API reference.
 ```bash
 cd /Users/flbk/Library/Android/sdk/platform-tools
 ./adb tcpip 5555
-./adb connect 192.168.1.6
+./adb connect 192.168.0.230
 ```
 
 ## stop adb over wifi
@@ -39,3 +39,5 @@ cd /Users/flbk/Library/Android/sdk/platform-tools
 - https://medium.com/flutter-community/use-environment-variables-in-ci-cd-for-flutter-apps-cbd6d9ac82c
 - https://pusher.com/tutorials/local-data-flutter
 - https://materialdesignicons.com/
+- https://pub.dev/packages/preferences#-readme-tab-
+- https://pub.dev/packages/dynamic_theme

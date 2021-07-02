@@ -80,12 +80,14 @@ class _SigninPageState extends State<SigninPage> {
 
   void _performNavigation(BuildContext context) {
     Navigator.pushNamed(context, SignupPage.navigationRoute);
+    usernameInput.clear();
+    passwordInput.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomPadding: true,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(widget.title),
@@ -97,7 +99,7 @@ class _SigninPageState extends State<SigninPage> {
               child: Padding(
                 padding: const EdgeInsets.all(36.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     usernameInput,

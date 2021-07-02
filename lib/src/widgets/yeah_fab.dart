@@ -44,6 +44,8 @@ class _YeahFabState extends State<YeahFab> {
 
     _controller.closed.then((value) {
       setState(() {
+        providerName.clear();
+        providerPassword.clear();
         _isBottomsheetVisible = false;
       });
     });
