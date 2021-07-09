@@ -41,3 +41,4 @@ cd /Users/flbk/Library/Android/sdk/platform-tools
 - https://materialdesignicons.com/
 - https://pub.dev/packages/preferences#-readme-tab-
 - https://pub.dev/packages/dynamic_theme
+- https://stackoverflow.com/a/53933224/3241957
